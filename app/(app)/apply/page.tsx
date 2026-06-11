@@ -30,6 +30,12 @@ import type { ChatResponse, ApplyResponse, ApplyRequest } from "@/types";
 
 const STEPS = ["Select Jobs", "Review CV", "Confirmation"];
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+function cvDownloadUrl(jobId: string) {
+  return `${API_BASE}/cv/download/${jobId}`;
+}
+
 export default function ApplyPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -594,7 +600,7 @@ export default function ApplyPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(`/api/v1/cv/download/${job.id}`, "_blank")}
+                          onClick={() => window.open(cvDownloadUrl(job.id), "_blank")}
                           className="ml-auto"
                         >
                           Download PDF
@@ -797,7 +803,7 @@ export default function ApplyPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`/api/v1/cv/download/${r.job_id}`, '_blank')}
+                        onClick={() => window.open(cvDownloadUrl(r.job_id), '_blank')}
                       >
                         Download CV
                       </Button>
