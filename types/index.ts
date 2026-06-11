@@ -113,6 +113,7 @@ export interface ApplyRequest {
   session_id: string;
   selected_job_ids: string[];
   min_score?: number;
+  limit?: number;
 }
 
 export interface EmailDraft {
@@ -120,6 +121,15 @@ export interface EmailDraft {
   subject: string;
   body: string;
   cv_attachment: string;
+}
+
+export interface ApplyPendingItem {
+  job_id: string;
+  application_id: string;
+  job_title?: string;
+  company?: string;
+  job_url?: string;
+  status: string;
 }
 
 export interface ApplyResult {
@@ -141,10 +151,13 @@ export interface ApplyResult {
 
 export interface ApplyResponse {
   total: number;
-  applied: number;
+  pending: ApplyPendingItem[];
+  message?: string;
+  /** @deprecated Use pending instead */
+  results?: ApplyResult[];
+  applied?: number;
   email_drafts?: number;
   manual_required?: number;
-  results: ApplyResult[];
 }
 
 export interface StatusUpdatePayload {

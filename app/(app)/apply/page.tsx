@@ -133,15 +133,15 @@ export default function ApplyPage() {
           selected_job_ids: [job.id],
         };
         const { data } = await api.post<ApplyResponse>("/apply", payload);
-        const result = data.results[0];
-        if (result?.optimized_cv_text) {
-          previews[job.id] = result.optimized_cv_text;
-        } else if (result?.application_id) {
-          previews[job.id] = `Optimized CV for ${job.title} at ${job.company}\n\n[Optimized content would appear here after full CV processing]`;
+        console.log("handleReviewCV raw response:", JSON.stringify(data));
+        const result = data.pending?.[0];
+        if (result?.application_id) {
+          previews[job.id] = `Optimized CV for ${job.title} at ${job.company}\n\nCV optimization is running in the background. The tailored CV will be available shortly.`;
         } else {
           previews[job.id] = `Optimization queued for ${job.title}. The generated CV will reference your original CV content tailored for this role.`;
         }
-      } catch {
+      } catch (e) {
+        console.error("handleReviewCV error for job", job.id, e);
         previews[job.id] = `Failed to optimize CV for ${job.title}. Using original CV.`;
       }
     }
@@ -160,9 +160,22 @@ export default function ApplyPage() {
         selected_job_ids: selectedJobs.map((j) => j.id),
       };
       const { data } = await api.post<ApplyResponse>("/apply", payload);
-      setApplyResponse(data);
+      console.log("handleApply raw response:", JSON.stringify(data));
+      const results = (data.pending ?? []).map((p) => ({
+        job_id: p.job_id,
+        application_id: p.application_id,
+        job_title: p.job_title,
+        company: p.company,
+        job_url: p.job_url ?? "",
+        status: "pending",
+        applied: false,
+        requires_manual: false,
+        cv_optimized: false,
+      }));
+      setApplyResponse({ ...data, results, applied: 0, email_drafts: 0, manual_required: 0 });
       setStep(2);
-    } catch {
+    } catch (e) {
+      console.error("handleApply error:", e);
       setApplyError("Application failed. Please try again.");
     } finally {
       setOptimizing(false);
@@ -178,9 +191,22 @@ export default function ApplyPage() {
         selected_job_ids: [jobId],
       };
       const { data } = await api.post<ApplyResponse>("/apply", payload);
-      setApplyResponse(data);
+      console.log("handleApproveOne raw response:", JSON.stringify(data));
+      const results = (data.pending ?? []).map((p) => ({
+        job_id: p.job_id,
+        application_id: p.application_id,
+        job_title: p.job_title,
+        company: p.company,
+        job_url: p.job_url ?? "",
+        status: "pending",
+        applied: false,
+        requires_manual: false,
+        cv_optimized: false,
+      }));
+      setApplyResponse({ ...data, results, applied: 0, email_drafts: 0, manual_required: 0 });
       setStep(2);
-    } catch {
+    } catch (e) {
+      console.error("handleApproveOne error:", e);
       setApplyError("Application failed for this job.");
     } finally {
       setOptimizing(false);
@@ -568,7 +594,7 @@ export default function ApplyPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(`http://localhost:8000/api/v1/cv/download/${job.id}`, "_blank")}
+                          onClick={() => window.open(`/api/v1/cv/download/${job.id}`, "_blank")}
                           className="ml-auto"
                         >
                           Download PDF
@@ -642,17 +668,15 @@ export default function ApplyPage() {
           {/* Summary card */}
           <Card className="py-8">
             <CardContent className="flex flex-col items-center gap-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
-                <CheckCircle2 className="h-8 w-8 text-green-400" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/20">
+                <Loader2 className="h-8 w-8 text-blue-400 animate-spin" />
               </div>
               <h3 className="text-xl font-semibold">
-                Applied to {applyResponse?.applied ?? 0} job
-                {(applyResponse?.applied ?? 0) !== 1 ? "s" : ""} successfully
+                {applyResponse?.total ?? 0} job
+                {(applyResponse?.total ?? 0) !== 1 ? "s" : ""} submitted for processing
               </h3>
               <p className="text-sm text-muted-foreground max-w-md">
-                {applyResponse
-                  ? `${applyResponse.applied} submitted automatically, ${applyResponse.email_drafts ?? 0} email drafts ready, ${applyResponse.manual_required ?? 0} need manual apply.`
-                  : "Applications processed."}
+                Your applications are being processed in the background. CV optimization and auto-apply will complete shortly. Check the Applications page for real-time status updates.
               </p>
             </CardContent>
           </Card>
@@ -773,7 +797,7 @@ export default function ApplyPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`http://localhost:8000/api/v1/cv/download/${r.job_id}`, '_blank')}
+                        onClick={() => window.open(`/api/v1/cv/download/${r.job_id}`, '_blank')}
                       >
                         Download CV
                       </Button>
