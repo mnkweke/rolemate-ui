@@ -739,7 +739,7 @@ export default function ApplyPage() {
                             await api.post(`/applications/${r.application_id}/send-email`);
                             setApplyResponse(prev => prev ? {
                               ...prev,
-                              results: prev.results.map(rr =>
+                              results: (prev.results ?? []).map(rr =>
                                 rr.application_id === r.application_id
                                   ? { ...rr, status: 'applied', applied: true }
                                   : rr
