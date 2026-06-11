@@ -2,18 +2,13 @@
 
 import { useQuery, useMutation } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { getSessionId } from "@/lib/auth";
 import type { ApplicationsResponse, ApplyRequest, ApplyResponse } from "@/types";
 
 export function useApplications() {
-  const sessionId = getSessionId();
-
   const { data: applications, isLoading, error, refetch } = useQuery({
-    queryKey: ["applications", sessionId],
+    queryKey: ["applications"],
     queryFn: async () => {
-      const { data } = await api.get<ApplicationsResponse>(
-        `/applications?session_id=${sessionId}`
-      );
+      const { data } = await api.get<ApplicationsResponse>("/applications");
       return data;
     },
     staleTime: 15000,
