@@ -11,7 +11,7 @@ import {
 
 export function Toaster() {
   const { toasts } = useToast();
-
+  console.log("[Toaster] rendering, toasts count:", toasts.length);
   return (
     <ToastProvider>
       {toasts.map(({ id, title, description, variant }) => (
