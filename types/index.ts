@@ -11,6 +11,7 @@ export interface Job {
   salary: string | null;
   skills: string[];
   posted_at: string;
+  scraped_at?: string | null;
   match_score?: number;
   why_matched?: string;
   skill_gaps?: string[];

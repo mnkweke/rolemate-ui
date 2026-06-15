@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -51,11 +51,11 @@ export default function DashboardPage() {
       .map(
         (j) =>
           j.scraped_at ||
-          j.date_posted ||
+          j.posted_at ||
           // fallback: if neither exists, we could use current time but we want to show Just now
           null
       )
-      .filter(Boolean)
+      .filter((t): t is string => t !== null)
       .map((t) => new Date(t).getTime())
       .filter((t) => !isNaN(t));
 
