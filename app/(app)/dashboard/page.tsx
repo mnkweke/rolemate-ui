@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -33,6 +33,7 @@ import { useApplications } from "@/hooks/useApplications";
 import { getSessionId } from "@/lib/auth";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import { timeAgo } from "@/lib/timeAgo";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,6 +42,27 @@ export default function DashboardPage() {
   const { jobs, isLoading: jobsLoading, scrapeJobs } = useJobs({ limit: 5 });
   const { profile, completionPercent } = useProfile();
   const { applications } = useApplications();
+
+  // Compute last scrape time from jobs (most recent scraped_at)
+  const lastScrapeTime = useMemo(() => {
+    if (!jobs?.length) return null;
+
+    const timestamps = jobs
+      .map(
+        (j) =>
+          j.scraped_at ||
+          j.date_posted ||
+          // fallback: if neither exists, we could use current time but we want to show Just now
+          null
+      )
+      .filter(Boolean)
+      .map((t) => new Date(t).getTime())
+      .filter((t) => !isNaN(t));
+
+    if (!timestamps.length) return null;
+
+    return new Date(Math.max(...timestamps)).toISOString();
+  }, [jobs]);
 
   useEffect(() => {
     api.get("/auth/api-key-status").then(({ data }) => {
@@ -226,7 +248,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              N/A
+              {lastScrapeTime ? timeAgo(lastScrapeTime) : "Just now"}
             </p>
             <Button
               variant="outline"
