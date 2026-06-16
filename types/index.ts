@@ -74,6 +74,17 @@ export interface ScrapeResult {
   results: Record<string, number>;
 }
 
+export interface SourceStats {
+  fetched: number;
+  stored: number;
+}
+
+export interface ScrapeStatusResponse {
+  last_scrape: string | null;
+  sources: Record<string, SourceStats>;
+  total_stored: number;
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;

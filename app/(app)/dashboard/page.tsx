@@ -30,6 +30,7 @@ import { JobList } from "@/components/jobs/JobList";
 import { useJobs } from "@/hooks/useJobs";
 import { useProfile } from "@/hooks/useProfile";
 import { useApplications } from "@/hooks/useApplications";
+import { useScrapeStatus } from "@/hooks/useScrapeStatus";
 import { getSessionId } from "@/lib/auth";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
@@ -42,27 +43,7 @@ export default function DashboardPage() {
   const { jobs, isLoading: jobsLoading, scrapeJobs } = useJobs({ limit: 5 });
   const { profile, completionPercent } = useProfile();
   const { applications } = useApplications();
-
-  // Compute last scrape time from jobs (most recent scraped_at)
-  const lastScrapeTime = useMemo(() => {
-    if (!jobs?.length) return null;
-
-    const timestamps = jobs
-      .map(
-        (j) =>
-          j.scraped_at ||
-          j.posted_at ||
-          // fallback: if neither exists, we could use current time but we want to show Just now
-          null
-      )
-      .filter((t): t is string => t !== null)
-      .map((t) => new Date(t).getTime())
-      .filter((t) => !isNaN(t));
-
-    if (!timestamps.length) return null;
-
-    return new Date(Math.max(...timestamps)).toISOString();
-  }, [jobs]);
+  const { data: scrapeStatus, isLoading: scrapeStatusLoading } = useScrapeStatus();
 
   useEffect(() => {
     api.get("/auth/api-key-status").then(({ data }) => {
@@ -247,23 +228,29 @@ export default function DashboardPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {lastScrapeTime ? timeAgo(lastScrapeTime) : "Just now"}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={handleScrape}
-              disabled={scrapeJobs.isPending}
-            >
-              {scrapeJobs.isPending ? (
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              ) : (
-                <RefreshCw className="h-3 w-3 mr-1" />
-              )}
-              Scrape now
-            </Button>
+            {scrapeStatusLoading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  {scrapeStatus?.last_scrape ? timeAgo(scrapeStatus.last_scrape) : "Never scraped"}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={handleScrape}
+                  disabled={scrapeJobs.isPending}
+                >
+                  {scrapeJobs.isPending ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                  )}
+                  Scrape now
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
