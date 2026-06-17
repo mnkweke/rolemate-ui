@@ -75,9 +75,7 @@ const listeners: Array<(state: State) => void> = [];
 let memoryState: State = { toasts: [] };
 
 function dispatch(action: Action) {
-  console.log("[Toast] dispatching action:", action);
   memoryState = reducer(memoryState, action);
-  console.log("[Toast] new state:", memoryState);
   listeners.forEach((listener) => listener(memoryState));
 }
 
@@ -85,7 +83,6 @@ type Toast = Omit<ToasterToast, "id">;
 
 function toast({ ...props }: Toast) {
   const id = genId();
-  console.log("[Toast] calling toast with props:", { ...props, id });
   dispatch({
     type: "ADD_TOAST",
     toast: { ...props, id },

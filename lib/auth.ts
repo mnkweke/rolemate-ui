@@ -1,22 +1,6 @@
-const TOKEN_KEY = "token";
+import api from "./api";
+
 const SESSION_KEY = "session_id";
-
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-export function removeToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
-}
-
-export function isAuthenticated(): boolean {
-  return !!getToken();
-}
 
 export function getSessionId(): string {
   if (typeof window === "undefined") return "default";
@@ -28,7 +12,19 @@ export function getSessionId(): string {
   return sessionId;
 }
 
-export function logout(): void {
-  removeToken();
-  window.location.href = "/login";
+export async function logout(): Promise<void> {
+  try {
+    await api.post("/auth/logout");
+  } catch (e) {
+    // ignore errors; ensure client clears session state
+  }
+  if (typeof window !== "undefined") {
+    // broadcast logout to other tabs
+    try {
+      localStorage.setItem("rolemate-logout", Date.now().toString());
+    } catch (e) {
+      // ignore
+    }
+    window.location.href = "/login";
+  }
 }

@@ -24,6 +24,17 @@ interface JobCardProps {
   job: Job;
 }
 
+function stripHtml(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function JobCard({ job }: JobCardProps) {
   const [expanded, setExpanded] = useState(false);
   const score = job.match_score;
@@ -49,8 +60,10 @@ export function JobCard({ job }: JobCardProps) {
     ? score >= 80 ? "success" : score >= 50 ? "warning" : "danger"
     : "secondary";
 
-  const postedDate = job.posted_at
-    ? new Date(job.posted_at).toLocaleDateString()
+  const description = stripHtml(job.description || job.summary || "");
+  const postedAt = job.posted_at || job.date_posted;
+  const postedDate = postedAt
+    ? new Date(postedAt).toLocaleDateString()
     : "Unknown";
 
   return (
@@ -70,7 +83,7 @@ export function JobCard({ job }: JobCardProps) {
                 <MapPin className="h-3.5 w-3.5" />
                 {job.location}
               </span>
-              {job.remote && (
+              {(job.remote || /remote/i.test(job.location || "")) && (
                 <Badge variant="outline" className="text-xs">
                   <Globe className="h-3 w-3 mr-1" />
                   Remote
@@ -116,7 +129,7 @@ export function JobCard({ job }: JobCardProps) {
         {expanded && (
           <div className="space-y-3 mt-3 pt-3 border-t">
             <p className="text-sm text-muted-foreground line-clamp-6">
-              {job.description || "No description available."}
+              {description || "No description available."}
             </p>
 
             {job.why_matched && (

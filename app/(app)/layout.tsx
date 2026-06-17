@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
-import { getToken } from "@/lib/auth";
+import api from "@/lib/api";
 
 export default function AppLayout({
   children,
@@ -15,13 +15,41 @@ export default function AppLayout({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
+  const [networkError, setNetworkError] = useState<string | null>(null);
+
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.push("/login");
-    } else {
-      setIsLoading(false);
-    }
+    let mounted = true;
+    api
+      .get("/auth/me")
+      .then(() => {
+        if (mounted) setIsLoading(false);
+      })
+      .catch((err: any) => {
+        if (!mounted) return;
+        const status = err?.response?.status;
+        if (status === 401) {
+          router.push("/login");
+        } else {
+          // network or server error — show retry UI
+          setNetworkError(
+            "Unable to validate session — please check your network and try again"
+          );
+          setIsLoading(false);
+        }
+      });
+
+    // listen for cross-tab logout
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "rolemate-logout") {
+        router.push("/login");
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("storage", onStorage);
+    };
   }, [router]);
 
   if (isLoading) {

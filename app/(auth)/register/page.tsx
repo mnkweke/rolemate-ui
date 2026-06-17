@@ -18,7 +18,6 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getToken } from "@/lib/auth";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import type { AxiosError } from "axios";
@@ -51,11 +50,18 @@ export default function RegisterPage() {
   });
 
   useEffect(() => {
-    if (getToken()) {
-      router.push("/dashboard");
-    } else {
-      setChecking(false);
-    }
+    let mounted = true;
+    api
+      .get("/auth/me")
+      .then(() => {
+        if (mounted) router.push("/dashboard");
+      })
+      .catch(() => {
+        if (mounted) setChecking(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, [router]);
 
   if (checking) {

@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getToken, setToken } from "@/lib/auth";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import type { AxiosError } from "axios";
@@ -35,11 +34,18 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    if (getToken()) {
-      router.push("/dashboard");
-    } else {
-      setChecking(false);
-    }
+    let mounted = true;
+    api
+      .get("/auth/me")
+      .then(() => {
+        if (mounted) router.push("/dashboard");
+      })
+      .catch(() => {
+        if (mounted) setChecking(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, [router]);
 
   if (checking) {
@@ -52,15 +58,11 @@ export default function LoginPage() {
 
   const onSubmit = async (data: { email: string; password: string }) => {
     try {
-      const { data: responseData } = await api.post<{
-        access_token: string;
-        token_type: string;
-        user_id: string;
-      }>("/auth/login", {
+      await api.post("/auth/login", {
         email: data.email,
         password: data.password,
       });
-      setToken(responseData.access_token);
+      // Backend sets httpOnly cookies; redirect and rely on /auth/me for session
       toast({
         title: "Logged in successfully",
         variant: "success",

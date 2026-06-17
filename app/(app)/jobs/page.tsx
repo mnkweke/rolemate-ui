@@ -32,8 +32,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-const sources = ["", "remotive", "arbeitnow"];
+const sources = ["", "remotive", "arbeitnow", "jobicy", "linkedin_nigeria", "jobberman", "indeed_nigeria"];
 const seniorities = ["", "junior", "mid", "senior", "lead"];
+
+function stripHtml(value: string): string {
+  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
 
 export default function JobsPage() {
   const [search, setSearch] = useState("");
@@ -56,7 +60,7 @@ export default function JobsPage() {
         (j) =>
           j.title.toLowerCase().includes(search.toLowerCase()) ||
           j.company.toLowerCase().includes(search.toLowerCase()) ||
-          j.description?.toLowerCase().includes(search.toLowerCase())
+          stripHtml(j.description || j.summary || "").toLowerCase().includes(search.toLowerCase())
       )
     : jobs;
 

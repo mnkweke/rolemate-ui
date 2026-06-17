@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -31,7 +31,6 @@ import { useJobs } from "@/hooks/useJobs";
 import { useProfile } from "@/hooks/useProfile";
 import { useApplications } from "@/hooks/useApplications";
 import { useScrapeStatus } from "@/hooks/useScrapeStatus";
-import { getSessionId } from "@/lib/auth";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { timeAgo } from "@/lib/timeAgo";
@@ -50,13 +49,6 @@ export default function DashboardPage() {
       setHasApiKey(data.has_api_key);
     }).catch(() => setHasApiKey(false));
   }, []);
-
-  useEffect(() => {
-    console.log("[Dashboard] session_id:", getSessionId());
-    console.log("[Dashboard] profile:", profile);
-    console.log("[Dashboard] completionPercent:", completionPercent);
-    console.log("[Dashboard] skills:", profile?.skills);
-  }, [profile, completionPercent]);
 
   const handleScrape = async () => {
     try {
@@ -132,7 +124,7 @@ export default function DashboardPage() {
               {jobsLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                jobs.length
+                scrapeStatus?.total_stored ?? jobs.length
               )}
             </div>
           </CardContent>

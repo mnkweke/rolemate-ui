@@ -3,14 +3,16 @@ export interface Job {
   title: string;
   company: string;
   location: string;
-  description: string;
+  description?: string;
+  summary?: string;
   url: string;
   source: string;
   seniority: string;
   remote: boolean;
   salary: string | null;
   skills: string[];
-  posted_at: string;
+  posted_at?: string;
+  date_posted?: string;
   scraped_at?: string | null;
   match_score?: number;
   why_matched?: string;
