@@ -14,8 +14,11 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
-        // Redirect to login on unauthorized
-        window.location.href = "/login";
+        const publicPaths = ["/login", "/register"];
+        if (!publicPaths.includes(window.location.pathname)) {
+          // Redirect to login on unauthorized when not already on a public auth page
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);
