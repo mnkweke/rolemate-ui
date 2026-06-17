@@ -13,11 +13,36 @@ export function getSessionId(): string {
 }
 
 export async function logout(): Promise<void> {
+  // Attempt server-side logout first. If it fails or is delayed, poll /auth/me
+  // to ensure the session cookie is cleared before navigating to /login.
   try {
     await api.post("/auth/logout");
   } catch (e) {
-    // ignore errors; ensure client clears session state
+    // continue — we'll verify by polling /auth/me below
   }
+
+  // Poll /auth/me until it returns 401 or timeout (max ~5s)
+  const start = Date.now();
+  const timeoutMs = 5000;
+  const intervalMs = 500;
+  let loggedOut = false;
+
+  while (Date.now() - start < timeoutMs) {
+    try {
+      await api.get("/auth/me");
+      // still authenticated; wait and retry
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        loggedOut = true;
+        break;
+      }
+      // network error — break and redirect to be safe
+      break;
+    }
+    // wait
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+
   if (typeof window !== "undefined") {
     // broadcast logout to other tabs
     try {
@@ -25,6 +50,9 @@ export async function logout(): Promise<void> {
     } catch (e) {
       // ignore
     }
+
+    // Only navigate to /login after server has cleared session (or after timeout)
+    // Use location.href to ensure cookies are handled by full page reload
     window.location.href = "/login";
   }
 }
