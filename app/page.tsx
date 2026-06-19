@@ -1,220 +1,301 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Search, FileText, Zap, Target, Sparkles, ArrowRight } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthContext";
+import { Search, FileText, Zap, Target, Sparkles, ArrowRight, CheckCircle, Menu, X, LayoutDashboard } from "lucide-react";
 
-const problems = [
-  {
-    icon: Search,
-    title: "Too many platforms",
-    desc: "LinkedIn, Indeed, Jobberman, Remotive — different tabs, different filters, same frustration every single day.",
-  },
-  {
-    icon: FileText,
-    title: "Generic CVs",
-    desc: "Sending the same CV to every job means you never stand out. Each role deserves a tailored application.",
-  },
-  {
-    icon: Zap,
-    title: "No time to track",
-    desc: "Applied last week? Can't remember. Interview next Tuesday? Missed it. Application tracking is a mess.",
-  },
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "How it works", href: "#how" },
+  { label: "Jobs", href: "/jobs" },
 ];
 
-const solutions = [
+const features = [
   {
     icon: Search,
-    title: "Smart Job Matching",
-    desc: "Find jobs that closely match your skills and experience.",
+    title: "AI Job Matching",
+    desc: "Find jobs that closely match your skills and experience with intelligent AI-powered recommendations.",
   },
   {
     icon: FileText,
     title: "Resume Optimization",
-    desc: "Tailor your resume for each application to increase interview opportunities.",
+    desc: "Tailor your resume for each application to increase interview opportunities and stand out.",
   },
   {
     icon: Zap,
-    title: "Faster Applications",
-    desc: "Apply to more jobs with less manual work.",
+    title: "Application Automation",
+    desc: "Apply to more jobs with less manual work through automated submission workflows.",
+  },
+  {
+    icon: Target,
+    title: "Job Tracking",
+    desc: "Stay organized with application tracking and interview scheduling in one place.",
   },
 ];
 
 const steps = [
   {
     num: "01",
-    title: "Create an account",
-    desc: "Sign up in seconds so Rolemate can personalize your job search.",
+    title: "Create Profile",
+    desc: "Sign up in seconds so RoleMate can personalize your job search.",
   },
   {
     num: "02",
-    title: "Upload your resume",
-    desc: "Add your current CV so Rolemate can analyze your skills and experience.",
+    title: "Upload Resume",
+    desc: "Add your current CV so RoleMate can analyze your skills and experience.",
   },
   {
     num: "03",
-    title: "Discover matching jobs",
-    desc: "See roles prioritized by fit so you focus on the best opportunities.",
+    title: "Get AI Matches",
+    desc: "Discover prioritized jobs that match your profile and preferences.",
   },
   {
     num: "04",
-    title: "Apply with assistance",
-    desc: "Save time with tailored resumes and faster application flows.",
+    title: "Apply Faster",
+    desc: "Submit tailored applications with optimized resumes in minutes.",
   },
 ];
 
+const benefits = [
+  {
+    icon: CheckCircle,
+    title: "Save Hours Weekly",
+    desc: "AI handles job search across platforms so you don't have to check multiple sites.",
+  },
+  {
+    icon: CheckCircle,
+    title: "Apply with Confidence",
+    desc: "Tailored resumes and cover letters help you stand out to recruiters.",
+  },
+  {
+    icon: CheckCircle,
+    title: "Better Match Quality",
+    desc: "AI-powered matching helps you focus on opportunities you'll love.",
+  },
+];
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Navigation */}
-      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Target className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">Rolemate</span>
+      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+          <Link href="/" className="flex items-center gap-3">
+            <img
+              src="/assets/irla-logo.jpeg"
+              alt="Irla logo"
+              className="h-8 w-8 rounded-lg object-cover"
+            />
+            <span className="text-sm font-semibold">RoleMate</span>
           </Link>
-          <nav className="flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm">Get Started Free</Button>
-            </Link>
+
+          <nav className="hidden items-center gap-8 md:flex">
+            {navLinks.map((link) =>
+              link.href.startsWith("/") ? (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </a>
+              )
+            )}
+            <div className="flex items-center gap-3">
+              {isLoading ? (
+                <div className="h-9 w-24 animate-pulse rounded-md bg-muted/50" />
+              ) : isAuthenticated ? (
+                <Link href="/dashboard">
+                  <Button size="sm">
+                    <LayoutDashboard className="mr-1.5 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button size="sm">Get started</Button>
+                  </Link>
+                </>
+              )}
+            </div>
           </nav>
+
+          <div className="md:hidden">
+            {isLoading ? (
+              <div className="h-9 w-9 animate-pulse rounded-md bg-muted/50" />
+            ) : isAuthenticated ? (
+              <Link href="/dashboard">
+                <Button size="sm">
+                  <LayoutDashboard className="mr-1.5 h-4 w-4" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
+
+        {mobileMenuOpen && !isAuthenticated && (
+          <div className="border-t border-border/50 bg-background md:hidden">
+            <div className="flex flex-col gap-4 px-6 py-6">
+              {navLinks.map((link) =>
+                link.href.startsWith("/") ? (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                )
+              )}
+              <div className="flex flex-col gap-2 pt-2">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full">
+                    Login
+                  </Button>
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button className="w-full">Get started</Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="px-6 py-20 md:py-28">
-          <div className="mx-auto max-w-5xl grid gap-8 md:grid-cols-2 items-center">
-            <div className="text-left">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-secondary/50 px-3 py-1 text-sm text-muted-foreground">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Job search redesigned for results
+        {/* Hero */}
+        <section className="relative overflow-hidden px-6 pt-24 pb-20 sm:pt-32 sm:pb-24">
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute -top-40 right-0 h-[600px] w-[600px] rounded-full bg-primary/[0.03] blur-3xl" />
+            <div className="absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full bg-primary/[0.02] blur-3xl" />
+          </div>
+
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                Trusted by early job seekers
               </div>
 
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                Find jobs that fit you — faster.
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+                Find Better Jobs.
+                <br />
+                <span className="text-primary">Apply Faster</span> With AI.
               </h1>
 
-              <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-                Discover relevant roles, improve your resume for each application, and apply to
-                more jobs with less manual work.
+              <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
+                RoleMate helps you discover higher-fit roles, optimize your
+                resume automatically, and submit more applications with ease.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link href="/register">
-                  <Button size="lg" className="w-full sm:w-auto">
-                    Create Free Account
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-
-                <Link href="/jobs">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                    Browse Jobs
-                  </Button>
-                </Link>
+              <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                {isLoading ? (
+                  <div className="h-11 w-52 animate-pulse rounded-md bg-muted/50" />
+                ) : isAuthenticated ? (
+                  <Link href="/dashboard">
+                    <Button
+                      size="lg"
+                      className="w-full px-8 text-base sm:w-auto"
+                    >
+                      <LayoutDashboard className="mr-2 h-5 w-5" />
+                      Go to Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/register">
+                      <Button
+                        size="lg"
+                        className="w-full px-8 text-base sm:w-auto"
+                        aria-label="Create free account"
+                      >
+                        Create Free Account
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                    <Link href="/jobs">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="w-full px-8 text-base sm:w-auto"
+                        aria-label="Browse jobs"
+                      >
+                        Browse Jobs
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
 
-              <p className="mt-4 text-sm text-muted-foreground">
-                Free to use — advanced integrations are available in Account settings.
-              </p>
-            </div>
-
-            <div className="hidden md:block">
-              {/* Decorative lightweight hero visual */}
-              <div className="mx-auto w-full max-w-md rounded-2xl bg-card p-6 shadow">
-                <div className="h-48 rounded-md bg-gradient-to-br from-primary/10 to-secondary/10" />
-              </div>
+              {!isAuthenticated && (
+                <p className="mt-4 text-xs text-muted-foreground/70">
+                  No credit card required &middot; Private & secure
+                </p>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Problem Section */}
-        <section className="border-t bg-secondary/30 px-6 py-24">
-          <div className="mx-auto max-w-6xl">
-            <div className="mx-auto mb-16 max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                Job hunting is exhausting
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                You spend hours every morning doing the same repetitive tasks across multiple platforms.
-              </p>
-            </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {problems.map((item, i) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={i}
-                    className="group rounded-xl border bg-card p-6 transition-colors hover:border-destructive/50"
-                  >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10">
-                      <Icon className="h-6 w-6 text-destructive" />
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold">{item.title}</h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+        {/* Social Proof */}
+        <section className="border-y border-border/50 bg-card py-14">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+              {[
+                { value: "1,000+", label: "Jobs analyzed daily" },
+                { value: "500+", label: "Applications submitted" },
+                { value: "200+", label: "Resumes optimized" },
+                { value: "100+", label: "Job seekers helped" },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-3xl font-bold text-primary sm:text-4xl">
+                    {stat.value}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Solution Section */}
-        <section className="px-6 py-24">
-          <div className="mx-auto max-w-6xl">
-            <div className="mx-auto mb-16 max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                Rolemate does it for you
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                One platform that handles your entire job search from discovery to application.
-              </p>
-            </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {solutions.map((item, i) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={i}
-                    className="group rounded-xl border bg-card p-6 transition-colors hover:border-primary/50"
-                  >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold">{item.title}</h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* How it Works */}
-        <section className="border-t bg-secondary/30 px-6 py-24">
-          <div className="mx-auto max-w-3xl">
-            <div className="mx-auto mb-16 max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">How it works</h2>
-              <p className="mt-4 text-muted-foreground">Up and running in minutes</p>
-            </div>
-            <div className="space-y-8">
-              {steps.map((item, i) => (
-                <div key={i} className="flex gap-6">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                    {item.num}
-                  </div>
-                  <div className="pt-1.5">
-                    <h3 className="text-lg font-semibold">{item.title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+                  <div className="mt-1.5 text-sm text-muted-foreground">
+                    {stat.label}
                   </div>
                 </div>
               ))}
@@ -222,72 +303,151 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Trust Section */}
-        <section className="px-6 py-20">
-          <div className="mx-auto max-w-4xl">
-            <div className="rounded-2xl border bg-card p-8">
-              <h3 className="text-xl font-semibold">Built for modern job seekers</h3>
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                <li className="text-sm text-muted-foreground">
-                  <strong>Secure authentication</strong> — industry-standard sign-in and data protection.
-                </li>
-                <li className="text-sm text-muted-foreground">
-                  <strong>Privacy-first</strong> — your data stays private; advanced integrations are optional.
-                </li>
-                <li className="text-sm text-muted-foreground">
-                  <strong>AI-assisted recommendations</strong> — suggestions that help you improve outcomes.
-                </li>
-                <li className="text-sm text-muted-foreground">
-                  <strong>Focused on results</strong> — designed to increase interview opportunities.
-                </li>
-              </ul>
+        {/* Features */}
+        <section id="features" className="px-6 py-24 sm:py-28">
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto mb-16 max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                Everything you need to land your next role
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                AI-powered tools that handle your entire job search from
+                discovery to application.
+              </p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {features.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={i}
+                    className="group rounded-2xl border border-border/50 bg-card p-8 transition-all hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+                  >
+                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/20">
+                      <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="mb-2 text-lg font-semibold">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {item.desc}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="border-t bg-secondary/30 px-6 py-24 text-center">
-          <div className="mx-auto max-w-3xl">
-            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
-              Ready to find your role?
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-              Join professionals who let AI handle their job search while they focus on what matters.
-            </p>
-            <div className="mt-10">
-              <Link href="/register">
-                <Button size="lg" className="px-10 text-base">
-                  Get Started Free
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+        {/* How It Works */}
+        <section
+          id="how"
+          className="border-y border-border/50 bg-card px-6 py-24 sm:py-28"
+        >
+          <div className="mx-auto max-w-5xl">
+            <div className="mx-auto mb-16 max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                How it works
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Get started in minutes with our simple four-step process.
+              </p>
+            </div>
+
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((step, i) => (
+                <div key={step.num} className="relative text-center">
+                  {i < steps.length - 1 && (
+                    <div className="absolute left-[calc(50%+28px)] top-6 hidden h-px w-[calc(100%-56px)] bg-border/50 lg:block" />
+                  )}
+                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
+                    {step.num}
+                  </div>
+                  <h4 className="mb-2 font-semibold">{step.title}</h4>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {step.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Benefits */}
+        <section className="px-6 py-24 sm:py-28">
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto mb-16 max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                Outcomes you can expect
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                More interviews, faster applications, and better-fit roles.
+              </p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-3">
+              {benefits.map((benefit, i) => {
+                const Icon = benefit.icon;
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-border/50 bg-card p-8 text-center transition-all hover:border-success/20 hover:shadow-lg hover:shadow-success/5"
+                  >
+                    <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
+                      <Icon className="h-6 w-6 text-success" />
+                    </div>
+                    <h4 className="mb-2 text-lg font-semibold">
+                      {benefit.title}
+                    </h4>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {benefit.desc}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t px-6 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
-              <Target className="h-4 w-4 text-primary-foreground" />
+      <footer className="border-t border-border/50 px-6 py-12">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 sm:flex-row">
+          <div className="flex items-center gap-3">
+            <img
+              src="/assets/irla-logo.jpeg"
+              alt="Irla"
+              className="h-8 w-8 rounded-lg object-cover"
+            />
+            <div className="flex flex-col text-sm">
+              <span className="font-semibold">RoleMate</span>
+              <span className="text-xs text-muted-foreground">by Irla</span>
             </div>
-            <span className="font-semibold tracking-tight">Rolemate</span>
-            <span className="ml-1 text-sm text-muted-foreground">
+          </div>
+
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-foreground"
+            >
+              Terms
+            </Link>
+            <Link
+              href="/contact"
+              className="transition-colors hover:text-foreground"
+            >
+              Contact
+            </Link>
+            <span className="text-muted-foreground/50">
               &copy; {new Date().getFullYear()}
             </span>
-          </div>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/login" className="transition-colors hover:text-foreground">
-              Sign In
-            </Link>
-            <Link href="/register" className="transition-colors hover:text-foreground">
-              Sign Up
-            </Link>
-            <Link href="/settings" className="transition-colors hover:text-foreground">
-              Settings
-            </Link>
           </div>
         </div>
       </footer>

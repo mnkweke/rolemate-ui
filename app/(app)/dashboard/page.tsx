@@ -215,7 +215,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Last Scrape
+              Last Update
             </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                   ) : (
                     <RefreshCw className="h-3 w-3 mr-1" />
                   )}
-                  Scrape now
+                  Update now
                 </Button>
               </>
             )}

@@ -1,25 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  Target,
-  Loader2,
-  ChevronLeft,
-} from "lucide-react";
+import { Loader2, ChevronLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import api from "@/lib/api";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import { useAuth } from "@/components/auth/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import type { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const { user, login, logout, isLoading: authLoading } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const {
     register,
@@ -27,158 +24,183 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm({
     mode: "onBlur",
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
-  useEffect(() => {
-    let mounted = true;
-    api
-      .get("/auth/me")
-      .then(() => {
-        if (mounted) router.push("/dashboard");
-      })
-      .catch(() => {
-        if (mounted) setChecking(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [router]);
+  const handleSwitchAccount = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
-  if (checking) {
+  const onSubmit = async (data: { email: string; password: string }) => {
+    try {
+      await login(data.email, data.password);
+      toast({ title: "Logged in successfully", variant: "success" });
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const msg =
+        (err as any)?.response?.data?.detail ||
+        (err as any)?.message ||
+        "Invalid email or password";
+      toast({ title: "Login failed", description: msg, variant: "destructive" });
+    }
+  };
+
+  if (authLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div>
+        <div className="mb-8 h-9 w-16 animate-pulse rounded bg-muted/50" />
+        <div className="mb-4 h-8 w-48 animate-pulse rounded bg-muted/50" />
+        <div className="mb-8 h-4 w-64 animate-pulse rounded bg-muted/50" />
+        <div className="space-y-4">
+          <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
+          <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
+          <div className="h-11 animate-pulse rounded-lg bg-muted/50" />
+        </div>
       </div>
     );
   }
 
-  const onSubmit = async (data: { email: string; password: string }) => {
-    try {
-      await api.post("/auth/login", {
-        email: data.email,
-        password: data.password,
-      });
-      // Backend sets httpOnly cookies; redirect and rely on /auth/me for session
-      toast({
-        title: "Logged in successfully",
-        variant: "success",
-      });
-      router.push("/dashboard");
-    } catch (err: unknown) {
-      const axiosErr = err as AxiosError<{ detail: string }>;
-      const msg =
-        axiosErr?.response?.data?.detail ||
-        axiosErr?.message ||
-        "Invalid email or password";
-      toast({
-        title: "Login failed",
-        description: msg,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+    <div>
       <Link
         href="/"
         className={cn(
-          buttonVariants({ variant: "ghost" }),
-          "absolute left-4 top-4 md:left-8 md:top-8"
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "mb-8 -ml-2 text-muted-foreground"
         )}
       >
-        <ChevronLeft className="mr-2 h-4 w-4" />
+        <ChevronLeft className="mr-1 h-4 w-4" />
         Back
       </Link>
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-        <div className="flex flex-col space-y-2 text-center">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-            <Target className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+
+      {user && (
+        <div className="mb-6 rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">
-            Sign in to your Rolemate account
+            Signed in as{" "}
+            <span className="font-medium text-foreground">{user.email}</span>
           </p>
+          <button
+            type="button"
+            disabled={isLoggingOut}
+            onClick={handleSwitchAccount}
+            className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline disabled:opacity-50"
+          >
+            {isLoggingOut ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <LogOut className="h-3 w-3" />
+            )}
+            Not you? Sign out and switch account
+          </button>
+        </div>
+      )}
+
+      <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Sign in to your RoleMate account
+      </p>
+
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mt-8 space-y-4"
+        autoComplete="off"
+      >
+        <input
+          type="email"
+          name="fake-email"
+          className="pointer-events-none absolute h-0 w-0 opacity-0"
+          tabIndex={-1}
+          autoComplete="off"
+          readOnly
+          aria-hidden="true"
+        />
+        <input
+          type="password"
+          name="fake-password"
+          className="pointer-events-none absolute h-0 w-0 opacity-0"
+          tabIndex={-1}
+          autoComplete="off"
+          readOnly
+          aria-hidden="true"
+        />
+
+        <div className="grid gap-2">
+          <Label htmlFor="login-email">Email</Label>
+          <Input
+            id="login-email"
+            type="email"
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Enter a valid email address",
+              },
+            })}
+            placeholder="you@example.com"
+            autoComplete="off"
+            disabled={isSubmitting}
+            className={errors.email ? "border-destructive" : ""}
+          />
+          {errors.email && (
+            <p className="text-xs text-destructive">{errors.email.message}</p>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Enter a valid email address",
-                  },
-                })}
-                placeholder="you@example.com"
-                autoComplete="email"
-                disabled={isSubmitting}
-                className={cn(
-                  "w-full",
-                  errors.email ? "border-destructive" : ""
-                )}
-              />
-              {errors.email && (
-                <p className="text-xs text-destructive">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters",
-                  },
-                })}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                disabled={isSubmitting}
-                className={cn(
-                  "w-full",
-                  errors.password ? "border-destructive" : ""
-                )}
-              />
-              {errors.password && (
-                <p className="text-xs text-destructive">{errors.password.message}</p>
-              )}
-            </div>
-          </div>
-
-          <Button
-            type="submit"
+        <div className="grid gap-2">
+          <Label htmlFor="login-password">Password</Label>
+          <Input
+            id="login-password"
+            type="password"
+            {...register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 8,
+                message: "Password must be at least 8 characters",
+              },
+            })}
+            placeholder="••••••••"
+            autoComplete="off"
             disabled={isSubmitting}
-            className={"w-full"}
-          >
-            {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              "Sign In"
-            )}
-          </Button>
+            className={errors.password ? "border-destructive" : ""}
+          />
+          {errors.password && (
+            <p className="text-xs text-destructive">{errors.password.message}</p>
+          )}
+        </div>
 
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            <Link
-              href="/register"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Don't have an account? Sign Up
-            </Link>
-          </p>
-        </form>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            "Sign In"
+          )}
+        </Button>
+      </form>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            or continue with
+          </span>
+        </div>
       </div>
+
+      <GoogleSignInButton />
+
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="font-medium text-primary hover:underline">
+          Sign Up
+        </Link>
+      </p>
     </div>
   );
 }

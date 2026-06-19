@@ -9,18 +9,12 @@ const api = axios.create({
 });
 
 // Remove Authorization header injection — sessions are cookie-based now
+// No automatic 401 redirect here — ProtectedRoute already handles redirecting
+// unauthenticated users from protected pages. An interceptor redirect would
+// break the landing page (/) which also calls /auth/me on mount.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        const publicPaths = ["/login", "/register"];
-        if (!publicPaths.includes(window.location.pathname)) {
-          // Redirect to login on unauthorized when not already on a public auth page
-          window.location.href = "/login";
-        }
-      }
-    }
     return Promise.reject(error);
   }
 );

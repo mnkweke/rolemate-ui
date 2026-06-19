@@ -7,15 +7,13 @@ import {
   MessageSquare,
   Briefcase,
   User,
-  LogOut,
   Bot,
   Send,
   ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logout } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { AccountPanel } from "@/components/layout/AccountPanel";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -36,7 +34,7 @@ export function Sidebar() {
         <span className="text-xl font-bold">Rolemate</span>
       </div>
       <Separator />
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -59,14 +57,7 @@ export function Sidebar() {
       </nav>
       <Separator />
       <div className="p-3">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground"
-          onClick={logout}
-        >
-          <LogOut className="h-5 w-5" />
-          Logout
-        </Button>
+        <AccountPanel />
       </div>
     </aside>
   );
