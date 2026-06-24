@@ -128,6 +128,7 @@ export interface ApplyRequest {
   selected_job_ids: string[];
   min_score?: number;
   limit?: number;
+  template?: string;
 }
 
 export interface EmailDraft {

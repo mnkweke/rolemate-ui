@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Send,
@@ -32,8 +32,8 @@ const STEPS = ["Select Jobs", "Review CV", "Confirmation"];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-function cvDownloadUrl(jobId: string) {
-  return `${API_BASE}/cv/download/${jobId}`;
+function cvDownloadUrl(jobId: string, template: string = "classic") {
+  return `${API_BASE}/cv/download/${jobId}?template=${template}`;
 }
 
 export default function ApplyPage() {
@@ -51,6 +51,10 @@ export default function ApplyPage() {
   const [originalCV, setOriginalCV] = useState<string | null>(null);
   const [loadingCV, setLoadingCV] = useState(true);
   const [cvError, setCvError] = useState<string | null>(null);
+  const [template, setTemplate] = useState<string>("classic");
+  const [pdfBlobUrls, setPdfBlobUrls] = useState<Record<string, string>>({});
+  const [pdfLoading, setPdfLoading] = useState<Record<string, boolean>>({});
+  const [pdfError, setPdfError] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const errorHandler = (event: ErrorEvent) => {
@@ -137,18 +141,19 @@ export default function ApplyPage() {
         const payload: ApplyRequest = {
           session_id: sessionId,
           selected_job_ids: [job.id],
+          template,
         };
         const { data } = await api.post<ApplyResponse>("/apply", payload);
-        console.log("handleReviewCV raw response:", JSON.stringify(data));
         const result = data.pending?.[0];
         if (result?.application_id) {
-          previews[job.id] = `Optimized CV for ${job.title} at ${job.company}\n\nCV optimization is running in the background. The tailored CV will be available shortly.`;
+          previews[job.id] = `Optimized CV for ${job.title} at ${job.company}`;
+          fetchBlobPdf(job.id, template);
         } else {
-          previews[job.id] = `Optimization queued for ${job.title}. The generated CV will reference your original CV content tailored for this role.`;
+          previews[job.id] = `Optimization queued for ${job.title}.`;
         }
       } catch (e) {
         console.error("handleReviewCV error for job", job.id, e);
-        previews[job.id] = `Failed to optimize CV for ${job.title}. Using original CV.`;
+        previews[job.id] = `Failed to optimize CV for ${job.title}.`;
       }
     }
     setOptimizedPreviews(previews);
@@ -164,6 +169,7 @@ export default function ApplyPage() {
       const payload: ApplyRequest = {
         session_id: sessionId,
         selected_job_ids: selectedJobs.map((j) => j.id),
+        template,
       };
       const { data } = await api.post<ApplyResponse>("/apply", payload);
       console.log("handleApply raw response:", JSON.stringify(data));
@@ -195,6 +201,7 @@ export default function ApplyPage() {
       const payload: ApplyRequest = {
         session_id: sessionId,
         selected_job_ids: [jobId],
+        template,
       };
       const { data } = await api.post<ApplyResponse>("/apply", payload);
       console.log("handleApproveOne raw response:", JSON.stringify(data));
@@ -218,6 +225,50 @@ export default function ApplyPage() {
       setOptimizing(false);
     }
   };
+
+  const fetchBlobPdf = useCallback(async (jobId: string, tpl: string) => {
+    setPdfLoading((prev) => ({ ...prev, [jobId]: true }));
+    setPdfError((prev) => ({ ...prev, [jobId]: false }));
+    try {
+      const response = await api.get(`/cv/download/${jobId}?template=${tpl}`, {
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      setPdfBlobUrls((prev) => ({ ...prev, [jobId]: url }));
+      return url;
+    } catch (e) {
+      console.error("fetchBlobPdf failed for", jobId, tpl, e);
+      setPdfError((prev) => ({ ...prev, [jobId]: true }));
+      return null;
+    } finally {
+      setPdfLoading((prev) => ({ ...prev, [jobId]: false }));
+    }
+  }, []);
+
+  useEffect(() => {
+    const urls = Object.values(pdfBlobUrls);
+    return () => urls.forEach(URL.revokeObjectURL);
+  }, [pdfBlobUrls]);
+
+  const prevTemplate = useRef(template);
+
+  useEffect(() => {
+    const prev = prevTemplate.current;
+    prevTemplate.current = template;
+    if (step !== 1) return;
+    const ids = Object.keys(pdfBlobUrls);
+    if (ids.length === 0 || prev === template) return;
+    for (const jobId of ids) {
+      const oldUrl = pdfBlobUrls[jobId];
+      if (oldUrl) URL.revokeObjectURL(oldUrl);
+    }
+    setPdfBlobUrls({});
+    for (const jobId of ids) {
+      fetchBlobPdf(jobId, template);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [template, step]);
 
   const scoreColor = (score: number) => {
     if (score >= 80) return "text-green-400";
@@ -507,6 +558,26 @@ export default function ApplyPage() {
 
       {step === 1 && (
         <>
+          {/* Template picker */}
+          <div className="flex items-center gap-3 mb-4 p-3 border rounded-lg bg-muted/30">
+            <span className="text-sm font-medium text-muted-foreground">Template:</span>
+            {["classic", "modern", "compact"].map((t) => (
+              <Button
+                key={t}
+                variant={template === t ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTemplate(t)}
+                className="capitalize"
+              >
+                {t}
+              </Button>
+            ))}
+            <div className="flex-1" />
+            <span className="text-xs text-muted-foreground">
+              Template: {template}
+            </span>
+          </div>
+
           {/* Job tabs for CV switching */}
           {selectedJobs.length > 1 && (
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
@@ -600,7 +671,7 @@ export default function ApplyPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(cvDownloadUrl(job.id), "_blank")}
+                          onClick={() => window.open(cvDownloadUrl(job.id, template), "_blank")}
                           className="ml-auto"
                         >
                           Download PDF
@@ -608,18 +679,28 @@ export default function ApplyPage() {
                       )}
                     </CardHeader>
                     <CardContent>
-                      {optimizing ? (
-                        <div className="space-y-2">
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-3/4" />
-                          <Skeleton className="h-4 w-5/6" />
-                          <Skeleton className="h-4 w-2/3" />
-                          <Skeleton className="h-4 w-4/5" />
+                      {optimizing || pdfLoading[job.id] ? (
+                        <div className="flex flex-col items-center justify-center gap-3 h-[600px]">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Generating preview...</span>
+                        </div>
+                      ) : pdfBlobUrls[job.id] ? (
+                        <iframe
+                          src={pdfBlobUrls[job.id]}
+                          className="w-full h-[600px] rounded"
+                          title="Optimized CV Preview"
+                        />
+                      ) : pdfError[job.id] ? (
+                        <div className="flex flex-col items-center justify-center gap-2 h-[600px] text-center p-4">
+                          <AlertTriangle className="h-8 w-8 text-amber-400" />
+                          <p className="text-sm font-medium text-amber-400">Tailoring unavailable for this job</p>
+                          <p className="text-xs text-muted-foreground max-w-sm">
+                            Showing original CV in {template} template. Download to view.
+                          </p>
                         </div>
                       ) : (
                         <div className="text-sm whitespace-pre-wrap font-mono text-xs leading-relaxed max-h-96 overflow-y-auto text-foreground/80">
-                          {optimizedPreviews[job.id] ??
-                            "Click 'Approve & Apply' to generate the optimized CV."}
+                          {optimizedPreviews[job.id] ?? "Click 'Approve & Apply' to generate the optimized CV."}
                         </div>
                       )}
                     </CardContent>
@@ -803,7 +884,7 @@ export default function ApplyPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(cvDownloadUrl(r.job_id), '_blank')}
+                        onClick={() => window.open(cvDownloadUrl(r.job_id, template), '_blank')}
                       >
                         Download CV
                       </Button>

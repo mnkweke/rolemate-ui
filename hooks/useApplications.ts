@@ -12,6 +12,7 @@ export function useApplications() {
       return data;
     },
     staleTime: 15000,
+    refetchInterval: 5000,
   });
 
   const applyMutation = useMutation({
