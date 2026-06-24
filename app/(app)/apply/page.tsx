@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Upload,
   AlertCircle,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v
 
 function cvDownloadUrl(jobId: string, template: string = "classic") {
   return `${API_BASE}/cv/download/${jobId}?template=${template}`;
+}
+
+function openInGmail(to: string, subject: string, body: string) {
+  const gmailUrl =
+    `https://mail.google.com/mail/?view=cm&fs=1` +
+    `&to=${encodeURIComponent(to)}` +
+    `&su=${encodeURIComponent(subject)}` +
+    `&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl, "_blank", "noopener,noreferrer");
 }
 
 export default function ApplyPage() {
@@ -53,6 +63,7 @@ export default function ApplyPage() {
   const [cvError, setCvError] = useState<string | null>(null);
   const [template, setTemplate] = useState<string>("classic");
   const [pdfBlobUrls, setPdfBlobUrls] = useState<Record<string, string>>({});
+  const [copiedState, setCopiedState] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState<Record<string, boolean>>({});
   const [pdfError, setPdfError] = useState<Record<string, boolean>>({});
 
@@ -841,11 +852,44 @@ export default function ApplyPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`mailto:${r.email_draft?.to}?subject=${encodeURIComponent(r.email_draft?.subject || '')}&body=${encodeURIComponent(r.email_draft?.body || '')}`, '_blank')}
+                        onClick={() => {
+                          const draft = r.email_draft;
+                          if (draft) {
+                            openInGmail(draft.to, draft.subject, draft.body);
+                          }
+                        }}
                       >
-                        Open in Mail Client
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Open in Gmail
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const draft = r.email_draft;
+                          if (draft) {
+                            const text =
+                              `To: ${draft.to}\n\n` +
+                              `Subject: ${draft.subject}\n\n` +
+                              `${draft.body}`;
+                            try {
+                              await navigator.clipboard.writeText(text);
+                              setCopiedState(r.job_id);
+                              setTimeout(() => setCopiedState(null), 2500);
+                            } catch {
+                              setApplyError("Failed to copy to clipboard.");
+                            }
+                          }
+                        }}
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        {copiedState === r.job_id ? "Copied!" : "Copy Email"}
                       </Button>
                     </div>
+                    <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      Remember to attach your downloaded CV before sending.
+                    </p>
                   </div>
                 ))}
               </div>
