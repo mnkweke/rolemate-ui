@@ -144,12 +144,15 @@ export default function ApplyPage() {
           template,
         };
         const { data } = await api.post<ApplyResponse>("/apply", payload);
-        const result = data.pending?.[0];
-        if (result?.application_id) {
+        const result = data.results?.[0];
+        if (result?.status === "applied" || result?.cv_optimized) {
           previews[job.id] = `Optimized CV for ${job.title} at ${job.company}`;
           fetchBlobPdf(job.id, template);
+        } else if (result?.status === "failed") {
+          previews[job.id] = `Failed to optimize CV for ${job.title}.`;
         } else {
-          previews[job.id] = `Optimization queued for ${job.title}.`;
+          previews[job.id] = `Optimized CV for ${job.title} at ${job.company}`;
+          fetchBlobPdf(job.id, template);
         }
       } catch (e) {
         console.error("handleReviewCV error for job", job.id, e);
@@ -173,18 +176,15 @@ export default function ApplyPage() {
       };
       const { data } = await api.post<ApplyResponse>("/apply", payload);
       console.log("handleApply raw response:", JSON.stringify(data));
-      const results = (data.pending ?? []).map((p) => ({
-        job_id: p.job_id,
-        application_id: p.application_id,
-        job_title: p.job_title,
-        company: p.company,
-        job_url: p.job_url ?? "",
-        status: "pending",
-        applied: false,
-        requires_manual: false,
-        cv_optimized: false,
-      }));
-      setApplyResponse({ ...data, results, applied: 0, email_drafts: 0, manual_required: 0 });
+      const emailDrafts = (data.results ?? []).filter(r => r.status === "email_draft_ready").length;
+      const manualRequired = (data.results ?? []).filter(r => r.requires_manual).length;
+      setApplyResponse({
+        ...data,
+        results: data.results ?? [],
+        applied: data.successful - emailDrafts,
+        email_drafts: emailDrafts,
+        manual_required: manualRequired,
+      });
       setStep(2);
     } catch (e) {
       console.error("handleApply error:", e);
@@ -205,18 +205,15 @@ export default function ApplyPage() {
       };
       const { data } = await api.post<ApplyResponse>("/apply", payload);
       console.log("handleApproveOne raw response:", JSON.stringify(data));
-      const results = (data.pending ?? []).map((p) => ({
-        job_id: p.job_id,
-        application_id: p.application_id,
-        job_title: p.job_title,
-        company: p.company,
-        job_url: p.job_url ?? "",
-        status: "pending",
-        applied: false,
-        requires_manual: false,
-        cv_optimized: false,
-      }));
-      setApplyResponse({ ...data, results, applied: 0, email_drafts: 0, manual_required: 0 });
+      const emailDrafts = (data.results ?? []).filter(r => r.status === "email_draft_ready").length;
+      const manualRequired = (data.results ?? []).filter(r => r.requires_manual).length;
+      setApplyResponse({
+        ...data,
+        results: data.results ?? [],
+        applied: data.successful - emailDrafts,
+        email_drafts: emailDrafts,
+        manual_required: manualRequired,
+      });
       setStep(2);
     } catch (e) {
       console.error("handleApproveOne error:", e);
@@ -759,8 +756,8 @@ export default function ApplyPage() {
                 <Loader2 className="h-8 w-8 text-blue-400 animate-spin" />
               </div>
               <h3 className="text-xl font-semibold">
-                {applyResponse?.total ?? 0} job
-                {(applyResponse?.total ?? 0) !== 1 ? "s" : ""} submitted for processing
+                {applyResponse?.total_jobs ?? applyResponse?.results?.length ?? 0} job
+                {(applyResponse?.total_jobs ?? applyResponse?.results?.length ?? 0) !== 1 ? "s" : ""} processed
               </h3>
               <p className="text-sm text-muted-foreground max-w-md">
                 Your applications are being processed in the background. CV optimization and auto-apply will complete shortly. Check the Applications page for real-time status updates.

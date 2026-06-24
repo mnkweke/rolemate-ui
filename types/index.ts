@@ -138,22 +138,12 @@ export interface EmailDraft {
   cv_attachment: string;
 }
 
-export interface ApplyPendingItem {
-  job_id: string;
-  application_id: string;
-  job_title?: string;
-  company?: string;
-  job_url?: string;
-  status: string;
-}
-
 export interface ApplyResult {
   job_id: string;
-  application_id: string;
+  application_id?: string;
   job_title?: string;
   company?: string;
   job_url?: string;
-  applied: boolean;
   status: string;
   method?: string;
   message?: string;
@@ -161,15 +151,14 @@ export interface ApplyResult {
   cv_optimized: boolean;
   optimized_cv_text?: string;
   email_draft?: EmailDraft;
-  pdf_path?: string;
+  error_message?: string;
 }
 
 export interface ApplyResponse {
-  total: number;
-  pending: ApplyPendingItem[];
-  message?: string;
-  /** @deprecated Use pending instead */
-  results?: ApplyResult[];
+  total_jobs: number;
+  successful: number;
+  failed: number;
+  results: ApplyResult[];
   applied?: number;
   email_drafts?: number;
   manual_required?: number;
