@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { isValidUrl } from "@/lib/utils";
 import type { Job } from "@/types";
 
 interface JobCardProps {
@@ -158,7 +160,18 @@ export function JobCard({ job }: JobCardProps) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(job.url, "_blank")}
+                onClick={() => {
+                  if (!isValidUrl(job.url)) {
+                    toast({
+                      title: "Job URL unavailable",
+                      description:
+                        "The original job link is unavailable. Please try again later.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  window.open(job.url, "_blank", "noopener,noreferrer");
+                }}
               >
                 <ExternalLink className="h-3.5 w-3.5 mr-1" />
                 View job

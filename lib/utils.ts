@@ -12,3 +12,13 @@ export function getUserInitials(name: string | null | undefined): string {
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
+
+export function isValidUrl(url: string | null | undefined): url is string {
+  if (!url?.trim()) return false;
+  try {
+    new URL(url.trim());
+    return true;
+  } catch {
+    return false;
+  }
+}

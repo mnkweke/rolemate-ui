@@ -27,6 +27,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSessionId } from "@/lib/auth";
 import api from "@/lib/api";
+import { openInGmail } from "@/lib/email";
+import { toast } from "@/hooks/use-toast";
+import { isValidUrl } from "@/lib/utils";
 import type { ChatResponse, ApplyResponse, ApplyRequest } from "@/types";
 
 const STEPS = ["Select Jobs", "Review CV", "Confirmation"];
@@ -35,15 +38,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v
 
 function cvDownloadUrl(jobId: string, template: string = "classic") {
   return `${API_BASE}/cv/download/${jobId}?template=${template}`;
-}
-
-function openInGmail(to: string, subject: string, body: string) {
-  const gmailUrl =
-    `https://mail.google.com/mail/?view=cm&fs=1` +
-    `&to=${encodeURIComponent(to)}` +
-    `&su=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`;
-  window.open(gmailUrl, "_blank", "noopener,noreferrer");
 }
 
 export default function ApplyPage() {
@@ -63,7 +57,6 @@ export default function ApplyPage() {
   const [cvError, setCvError] = useState<string | null>(null);
   const [template, setTemplate] = useState<string>("classic");
   const [pdfBlobUrls, setPdfBlobUrls] = useState<Record<string, string>>({});
-  const [copiedState, setCopiedState] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState<Record<string, boolean>>({});
   const [pdfError, setPdfError] = useState<Record<string, boolean>>({});
 
@@ -624,7 +617,18 @@ export default function ApplyPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(job.url, "_blank")}
+                    onClick={() => {
+                      if (!isValidUrl(job.url)) {
+                        toast({
+                          title: "Job URL unavailable",
+                          description:
+                            "The original job link is unavailable. Please try again later.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      window.open(job.url, "_blank", "noopener,noreferrer");
+                    }}
                   >
                     <ExternalLink className="h-3.5 w-3.5 mr-1" />
                     View Job
@@ -874,8 +878,11 @@ export default function ApplyPage() {
                               `${draft.body}`;
                             try {
                               await navigator.clipboard.writeText(text);
-                              setCopiedState(r.job_id);
-                              setTimeout(() => setCopiedState(null), 2500);
+                              toast({
+                                title: "Copied to clipboard",
+                                description: "Email draft copied. Paste in Gmail to send.",
+                                variant: "success",
+                              });
                             } catch {
                               setApplyError("Failed to copy to clipboard.");
                             }
@@ -883,7 +890,7 @@ export default function ApplyPage() {
                         }}
                       >
                         <Copy className="h-3 w-3 mr-1" />
-                        {copiedState === r.job_id ? "Copied!" : "Copy Email"}
+                        Copy Email
                       </Button>
                     </div>
                     <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
@@ -918,7 +925,30 @@ export default function ApplyPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(r.job_url, '_blank')}
+                        onClick={() => {
+                          const url = r.job_url?.trim();
+                          if (!url) {
+                            toast({
+                              title: "Job URL unavailable",
+                              description:
+                                "The original job link is unavailable. Please try again later.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          try {
+                            new URL(url);
+                          } catch {
+                            toast({
+                              title: "Invalid job URL",
+                              description:
+                                "The application link appears to be invalid.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          window.open(url, "_blank", "noopener,noreferrer");
+                        }}
                       >
                         Apply Manually <ExternalLink className="h-3 w-3 ml-1" />
                       </Button>

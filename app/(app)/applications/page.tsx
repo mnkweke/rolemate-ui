@@ -35,6 +35,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useApplications } from "@/hooks/useApplications";
+import { toast } from "@/hooks/use-toast";
+import { isValidUrl } from "@/lib/utils";
 import type { ApplicationRecord } from "@/types";
 
 const statusColors: Record<string, string> = {
@@ -270,7 +272,18 @@ export default function ApplicationsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(app.job_url, "_blank")}
+                    onClick={() => {
+                      if (!isValidUrl(app.job_url)) {
+                        toast({
+                          title: "Job URL unavailable",
+                          description:
+                            "The original job link is unavailable. Please try again later.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      window.open(app.job_url, "_blank", "noopener,noreferrer");
+                    }}
                   >
                     <ExternalLink className="h-3.5 w-3.5 mr-1" />
                     View Job
