@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense, useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
@@ -11,25 +11,12 @@ import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
-
-const strengthConfig = [
-  { label: "Strong", color: "bg-success", min: 6 },
-  { label: "Good", color: "bg-yellow-500", min: 5 },
-  { label: "Fair", color: "bg-orange-500", min: 3 },
-  { label: "Weak", color: "bg-destructive", min: 0 },
-];
-
-function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (pw.length >= 12) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[a-z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  const cfg = strengthConfig.find((c) => score >= c.min) ?? strengthConfig[strengthConfig.length - 1];
-  return { score, label: cfg.label, color: cfg.color };
-}
+import type { ZXCVBNResult } from "zxcvbn";
+import {
+  getPasswordStrength,
+  isStrongEnough,
+  type StrengthResult,
+} from "@/lib/password-strength";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -38,6 +25,20 @@ function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+  const [strength, setStrength] = useState<StrengthResult>({
+    score: 0,
+    label: "Very Weak",
+    color: "bg-destructive",
+    barFill: 1,
+    feedback: { warning: "", suggestions: [] },
+  });
+  const zxcvbnRef = useRef<((pw: string) => ZXCVBNResult) | null>(null);
+
+  useEffect(() => {
+    import("zxcvbn").then((mod) => {
+      zxcvbnRef.current = mod.default;
+    });
+  }, []);
 
   const {
     register,
@@ -50,7 +51,32 @@ function ResetPasswordForm() {
   });
 
   const passwordValue = watch("password", "");
-  const strength = getPasswordStrength(passwordValue);
+
+  useEffect(() => {
+    if (zxcvbnRef.current && passwordValue) {
+      const result = zxcvbnRef.current(passwordValue);
+      setStrength(getPasswordStrength(result));
+    } else if (!passwordValue) {
+      setStrength({
+        score: 0,
+        label: "Very Weak",
+        color: "bg-destructive",
+        barFill: 1,
+        feedback: { warning: "", suggestions: [] },
+      });
+    }
+  }, [passwordValue]);
+
+  const validateStrength = useCallback(async (v: string) => {
+    if (!v) return true;
+    const fn = zxcvbnRef.current;
+    if (fn) {
+      return isStrongEnough(fn(v).score) || "Please choose a stronger password.";
+    }
+    const mod = await import("zxcvbn");
+    zxcvbnRef.current = mod.default;
+    return isStrongEnough(mod.default(v).score) || "Please choose a stronger password.";
+  }, []);
 
   const onSubmit = useCallback(
     async (data: { password: string }) => {
@@ -159,9 +185,7 @@ function ResetPasswordForm() {
                   message: "Password must be at least 8 characters",
                 },
                 validate: {
-                  strength: (v) =>
-                    getPasswordStrength(v).score >= 2 ||
-                    "Use a mix of uppercase, numbers, or symbols",
+                  strength: validateStrength,
                 },
               })}
               placeholder="••••••••"
@@ -192,13 +216,19 @@ function ResetPasswordForm() {
                   <div
                     key={i}
                     className={cn(
-                      "h-full flex-1 rounded-full transition-colors",
-                      i < strength.score ? strength.color : "bg-muted"
+                      "h-full flex-1 rounded-full transition-all duration-300",
+                      i < strength.barFill ? strength.color : "bg-muted"
                     )}
                   />
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">{strength.label}</p>
+              {strength.feedback.warning && (
+                <p className="text-xs text-destructive">{strength.feedback.warning}</p>
+              )}
+              {strength.feedback.suggestions.map((s, i) => (
+                <p key={i} className="text-xs text-muted-foreground">{s}</p>
+              ))}
             </div>
           )}
           {errors.password && (
