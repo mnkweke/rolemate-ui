@@ -164,6 +164,15 @@ export interface ApplyResponse {
   manual_required?: number;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  new_password: string;
+}
+
 export interface StatusUpdatePayload {
   appId: string;
   status: string;

@@ -171,6 +171,14 @@ export default function LoginPage() {
           {errors.password && (
             <p className="text-xs text-destructive">{errors.password.message}</p>
           )}
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
         <Button type="submit" disabled={isSubmitting} className="w-full">
@@ -199,6 +207,16 @@ export default function LoginPage() {
         Don&apos;t have an account?{" "}
         <Link href="/register" className="font-medium text-primary hover:underline">
           Sign Up
+        </Link>
+      </p>
+      <p className="mt-4 text-center text-xs text-muted-foreground/60">
+        By signing in, you agree to our{" "}
+        <Link href="/terms" className="font-medium text-primary hover:underline">
+          Terms
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="font-medium text-primary hover:underline">
+          Privacy Policy
         </Link>
       </p>
     </div>

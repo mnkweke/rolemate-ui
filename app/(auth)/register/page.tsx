@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -29,20 +29,50 @@ interface ValidationError {
   type: string;
 }
 
+const strengthConfig = [
+  { label: "Weak", color: "bg-destructive", min: 0 },
+  { label: "Fair", color: "bg-orange-500", min: 1 },
+  { label: "Good", color: "bg-yellow-500", min: 2 },
+  { label: "Strong", color: "bg-success", min: 3 },
+];
+
+function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const cfg = strengthConfig.find((c) => score >= c.min) ?? strengthConfig[0];
+  return { score, label: cfg.label, color: cfg.color };
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { user, logout, isLoading: authLoading } = useAuth();
   const [showGroqKey, setShowGroqKey] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     mode: "onBlur",
-    defaultValues: { name: "", email: "", password: "", groqApiKey: "" },
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      groqApiKey: "",
+      acceptedTerms: false,
+    },
   });
+
+  const passwordValue = watch("password", "");
+  const strength = getPasswordStrength(passwordValue);
 
   const handleSwitchAccount = async () => {
     setIsLoggingOut(true);
@@ -53,51 +83,56 @@ export default function RegisterPage() {
     }
   };
 
-  const onSubmit = async (data: {
-    name: string;
-    email: string;
-    password: string;
-    groqApiKey: string;
-  }) => {
-    try {
-      await api.post("/auth/signup", {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        groq_api_key: data.groqApiKey,
-      });
-      toast({
-        title: "Account created successfully",
-        description: "Redirecting to login...",
-        variant: "success",
-      });
-      setTimeout(() => router.push("/login"), 1500);
-    } catch (err: unknown) {
-      const axiosErr = err as AxiosError<{
-        detail: string | ValidationError[];
-      }>;
-      const status = axiosErr?.response?.status;
-      const detail = axiosErr?.response?.data?.detail;
-
-      if (status === 422 && Array.isArray(detail)) {
-        toast({
-          title: "Validation error",
-          description: detail[0].msg,
-          variant: "destructive",
+  const onSubmit = useCallback(
+    async (data: {
+      name: string;
+      email: string;
+      password: string;
+      groqApiKey: string;
+      acceptedTerms: boolean;
+    }) => {
+      try {
+        await api.post("/auth/signup", {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          groq_api_key: data.groqApiKey,
+          accepted_terms: data.acceptedTerms,
         });
-      } else if (status === 409) {
-        const msg =
-          typeof detail === "string" ? detail : "Email already registered";
-        toast({ title: "Registration failed", description: msg, variant: "destructive" });
-      } else {
-        const msg =
-          typeof detail === "string"
-            ? detail
-            : "Registration failed. Please try again.";
-        toast({ title: "Registration failed", description: msg, variant: "destructive" });
+        toast({
+          title: "Account created successfully",
+          description: "Redirecting to login...",
+          variant: "success",
+        });
+        setTimeout(() => router.push("/login"), 1500);
+      } catch (err: unknown) {
+        const axiosErr = err as AxiosError<{
+          detail: string | ValidationError[];
+        }>;
+        const status = axiosErr?.response?.status;
+        const detail = axiosErr?.response?.data?.detail;
+
+        if (status === 422 && Array.isArray(detail)) {
+          toast({
+            title: "Validation error",
+            description: detail[0].msg,
+            variant: "destructive",
+          });
+        } else if (status === 409) {
+          const msg =
+            typeof detail === "string" ? detail : "Email already registered";
+          toast({ title: "Registration failed", description: msg, variant: "destructive" });
+        } else {
+          const msg =
+            typeof detail === "string"
+              ? detail
+              : "Registration failed. Please try again.";
+          toast({ title: "Registration failed", description: msg, variant: "destructive" });
+        }
       }
-    }
-  };
+    },
+    [router]
+  );
 
   if (authLoading) {
     return (
@@ -106,6 +141,7 @@ export default function RegisterPage() {
         <div className="mb-4 h-8 w-56 animate-pulse rounded bg-muted/50" />
         <div className="mb-8 h-4 w-48 animate-pulse rounded bg-muted/50" />
         <div className="space-y-4">
+          <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
           <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
           <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
           <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
@@ -236,23 +272,100 @@ export default function RegisterPage() {
 
         <div className="grid gap-2">
           <Label htmlFor="reg-password">Password</Label>
-          <Input
-            id="reg-password"
-            type="password"
-            {...register("password", {
-              required: "Password is required",
-              minLength: {
-                value: 8,
-                message: "Password must be at least 8 characters",
-              },
-            })}
-            placeholder="••••••••"
-            autoComplete="new-password"
-            disabled={isSubmitting}
-            className={errors.password ? "border-destructive" : ""}
-          />
+          <div className="relative">
+            <Input
+              id="reg-password"
+              type={showPassword ? "text" : "password"}
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 8,
+                  message: "Password must be at least 8 characters",
+                },
+                validate: {
+                  strength: (v) =>
+                    getPasswordStrength(v).score >= 2 ||
+                    "Use a mix of uppercase, numbers, or symbols",
+                },
+              })}
+              placeholder="••••••••"
+              autoComplete="new-password"
+              disabled={isSubmitting}
+              className={cn(
+                "pr-10",
+                errors.password ? "border-destructive" : ""
+              )}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowPassword(!showPassword)}
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+          {passwordValue && (
+            <div className="mt-1 space-y-1">
+              <div className="flex h-1.5 w-full gap-1">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-full flex-1 rounded-full transition-colors",
+                      i < strength.score ? strength.color : "bg-muted"
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">{strength.label}</p>
+            </div>
+          )}
           {errors.password && (
             <p className="text-xs text-destructive">{errors.password.message}</p>
+          )}
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="reg-confirm">Confirm password</Label>
+          <div className="relative">
+            <Input
+              id="reg-confirm"
+              type={showConfirm ? "text" : "password"}
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+                validate: (v) =>
+                  v === passwordValue || "Passwords do not match",
+              })}
+              placeholder="••••••••"
+              autoComplete="new-password"
+              disabled={isSubmitting}
+              className={cn(
+                "pr-10",
+                errors.confirmPassword ? "border-destructive" : ""
+              )}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowConfirm(!showConfirm)}
+              tabIndex={-1}
+            >
+              {showConfirm ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p className="text-xs text-destructive">
+              {errors.confirmPassword.message}
+            </p>
           )}
         </div>
 
@@ -305,6 +418,33 @@ export default function RegisterPage() {
             </p>
           </div>
         </div>
+
+        <div className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            id="reg-terms"
+            {...register("acceptedTerms", {
+              required: "You must accept the terms and privacy policy",
+            })}
+            className="mt-1 h-4 w-4 shrink-0 rounded border-border bg-card text-primary focus:ring-primary"
+            disabled={isSubmitting}
+          />
+          <Label htmlFor="reg-terms" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+            I agree to the{" "}
+            <Link href="/terms" className="font-medium text-primary hover:underline" target="_blank">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="font-medium text-primary hover:underline" target="_blank">
+              Privacy Policy
+            </Link>
+          </Label>
+        </div>
+        {errors.acceptedTerms && (
+          <p className="text-xs text-destructive -mt-2">
+            {errors.acceptedTerms.message}
+          </p>
+        )}
 
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? (
