@@ -439,12 +439,12 @@ export default function LandingPage() {
             >
               Terms
             </Link>
-            <a
-              href="mailto:hello@irlastudio.com?subject=RoleMate%20Support"
+            <Link
+              href="/contact"
               className="transition-colors hover:text-foreground"
             >
               Contact
-            </a>
+            </Link>
             <span className="text-muted-foreground/50">
               &copy; {new Date().getFullYear()}
             </span>
