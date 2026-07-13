@@ -10,12 +10,11 @@ import {
 } from "@/components/ui/toast";
 
 export function Toaster() {
-  const { toasts } = useToast();
-  console.log("[Toaster] rendering, toasts count:", toasts.length);
+  const { toasts, dismiss } = useToast();
   return (
     <ToastProvider>
       {toasts.map(({ id, title, description, variant }) => (
-        <Toast key={id} variant={variant}>
+        <Toast key={id} variant={variant} onClose={() => dismiss(id)}>
           <div className="grid gap-1">
             {title && <ToastTitle>{title}</ToastTitle>}
             {description && (

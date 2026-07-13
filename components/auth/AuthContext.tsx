@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { toast } from "@/hooks/use-toast";
 
 interface User {
   id: string;

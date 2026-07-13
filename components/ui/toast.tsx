@@ -16,7 +16,7 @@ const ToastViewport = React.forwardRef<
   <ol
     ref={ref}
     className={cn(
-      "fixed bottom-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:max-w-[420px]",
+      "fixed top-4 z-[100] flex max-h-screen w-full flex-col gap-2 sm:right-4 sm:w-auto sm:max-w-[420px] max-sm:left-4 max-sm:right-4",
       className
     )}
     {...props}
@@ -25,7 +25,7 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = "ToastViewport";
 
 const toastVariants = cva(
-  "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-4 pr-8 shadow-lg animate-in fade-in slide-in-from-top-full sm:slide-in-from-bottom-full",
+  "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-4 pr-8 shadow-lg animate-in fade-in slide-in-from-top-full",
   {
     variants: {
       variant: {
