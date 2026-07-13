@@ -74,7 +74,7 @@ export default function PrivacyPage() {
           <h2 className="mb-2 text-base font-semibold text-foreground">6. Your Rights</h2>
           <p>
             You have the right to access, correct, or delete your personal data. You may also
-            export your data at any time. Contact us at privacy@rolemate.app to exercise these rights.
+            export your data at any time. Contact us at hello@irlastudio.com to exercise these rights.
           </p>
         </section>
 
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="mb-2 text-base font-semibold text-foreground">8. Contact</h2>
           <p>
-            For privacy-related inquiries, contact us at privacy@rolemate.app.
+            For privacy-related inquiries, contact us at hello@irlastudio.com.
           </p>
         </section>
       </div>

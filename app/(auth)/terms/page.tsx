@@ -90,7 +90,7 @@ export default function TermsPage() {
         <section>
           <h2 className="mb-2 text-base font-semibold text-foreground">8. Contact</h2>
           <p>
-            For questions about these terms, contact us at legal@rolemate.app.
+            For questions about these terms, contact us at hello@irlastudio.com.
           </p>
         </section>
       </div>

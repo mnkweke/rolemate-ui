@@ -439,12 +439,12 @@ export default function LandingPage() {
             >
               Terms
             </Link>
-            <Link
-              href="/contact"
+            <a
+              href="mailto:hello@irlastudio.com"
               className="transition-colors hover:text-foreground"
             >
               Contact
-            </Link>
+            </a>
             <span className="text-muted-foreground/50">
               &copy; {new Date().getFullYear()}
             </span>

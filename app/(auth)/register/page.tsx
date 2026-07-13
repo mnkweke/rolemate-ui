@@ -21,7 +21,7 @@ import { useAuth } from "@/components/auth/AuthContext";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import type { AxiosError } from "axios";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 
 interface ValidationError {
   loc: (string | number)[];
@@ -58,6 +58,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     mode: "onBlur",
@@ -420,14 +421,21 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex items-start gap-2">
-          <input
-            type="checkbox"
-            id="reg-terms"
-            {...register("acceptedTerms", {
-              required: "You must accept the terms and privacy policy",
-            })}
-            className="mt-1 h-4 w-4 shrink-0 rounded border-border bg-card text-primary focus:ring-primary"
-            disabled={isSubmitting}
+          <Controller
+            name="acceptedTerms"
+            control={control}
+            defaultValue={false}
+            rules={{ required: "You must accept the terms and privacy policy" }}
+            render={({ field: { onChange, value } }) => (
+              <input
+                type="checkbox"
+                id="reg-terms"
+                checked={value}
+                onChange={(e) => onChange(e.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0 rounded border-border bg-card text-primary focus:ring-primary"
+                disabled={isSubmitting}
+              />
+            )}
           />
           <Label htmlFor="reg-terms" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
             I agree to the{" "}
