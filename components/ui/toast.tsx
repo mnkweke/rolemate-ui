@@ -12,20 +12,24 @@ const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
 const ToastViewport = React.forwardRef<
   HTMLOListElement,
   React.HTMLAttributes<HTMLOListElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <ol
     ref={ref}
     className={cn(
-      "fixed top-4 z-[100] flex max-h-screen w-full flex-col gap-2 sm:right-4 sm:w-auto sm:max-w-[420px] max-sm:left-4 max-sm:right-4",
+      "fixed left-1/2 z-[9999] flex w-full max-w-[420px] -translate-x-1/2 flex-col gap-2 px-4",
       className
     )}
+    style={{
+      bottom: "calc(env(safe-area-inset-bottom, 0px) + 24px)",
+      ...style,
+    }}
     {...props}
   />
 ));
 ToastViewport.displayName = "ToastViewport";
 
 const toastVariants = cva(
-  "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-4 pr-8 shadow-lg animate-in fade-in slide-in-from-top-full",
+  "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-4 pr-8 shadow-lg animate-in fade-in slide-in-from-bottom-full",
   {
     variants: {
       variant: {
