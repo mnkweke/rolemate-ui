@@ -13,19 +13,21 @@ import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 
 const strengthConfig = [
+  { label: "Strong", color: "bg-success", min: 6 },
+  { label: "Good", color: "bg-yellow-500", min: 5 },
+  { label: "Fair", color: "bg-orange-500", min: 3 },
   { label: "Weak", color: "bg-destructive", min: 0 },
-  { label: "Fair", color: "bg-orange-500", min: 1 },
-  { label: "Good", color: "bg-yellow-500", min: 2 },
-  { label: "Strong", color: "bg-success", min: 3 },
 ];
 
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
   if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
   if (/[A-Z]/.test(pw)) score++;
+  if (/[a-z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
-  const cfg = strengthConfig.find((c) => score >= c.min) ?? strengthConfig[0];
+  const cfg = strengthConfig.find((c) => score >= c.min) ?? strengthConfig[strengthConfig.length - 1];
   return { score, label: cfg.label, color: cfg.color };
 }
 
