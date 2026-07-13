@@ -113,22 +113,19 @@ export default function RegisterPage() {
         const status = axiosErr?.response?.status;
         const detail = axiosErr?.response?.data?.detail;
 
-        if (status === 422 && Array.isArray(detail)) {
-          toast({
-            title: "Validation error",
-            description: detail[0].msg,
-            variant: "destructive",
-          });
+        if (status === 429) {
+          toast({ title: "Too many attempts", description: "Please wait a moment and try again.", variant: "destructive" });
+        } else if (status === 422 && Array.isArray(detail)) {
+          toast({ title: "Validation error", description: detail[0].msg, variant: "destructive" });
         } else if (status === 409) {
-          const msg =
-            typeof detail === "string" ? detail : "Email already registered";
+          const msg = typeof detail === "string" ? detail : "Email already registered";
           toast({ title: "Registration failed", description: msg, variant: "destructive" });
+        } else if (status === 500) {
+          toast({ title: "Server error", description: "Please try again later.", variant: "destructive" });
+        } else if (typeof detail === "string") {
+          toast({ title: "Registration failed", description: detail, variant: "destructive" });
         } else {
-          const msg =
-            typeof detail === "string"
-              ? detail
-              : "Registration failed. Please try again.";
-          toast({ title: "Registration failed", description: msg, variant: "destructive" });
+          toast({ title: "Registration failed", description: "Please try again.", variant: "destructive" });
         }
       }
     },

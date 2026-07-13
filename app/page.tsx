@@ -440,7 +440,7 @@ export default function LandingPage() {
               Terms
             </Link>
             <a
-              href="mailto:hello@irlastudio.com"
+              href="mailto:hello@irlastudio.com?subject=RoleMate%20Support"
               className="transition-colors hover:text-foreground"
             >
               Contact

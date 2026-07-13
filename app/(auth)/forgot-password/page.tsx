@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
+import type { AxiosError } from "axios";
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
@@ -32,12 +33,18 @@ export default function ForgotPasswordPage() {
         description: "Check your email for the password reset link.",
         variant: "success",
       });
-    } catch {
-      toast({
-        title: "Something went wrong",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<{ detail?: string }>;
+      const status = axiosErr?.response?.status;
+      const detail = axiosErr?.response?.data?.detail;
+
+      if (status === 429) {
+        toast({ title: "Too many attempts", description: "Please wait a minute and try again.", variant: "destructive" });
+      } else if (typeof detail === "string") {
+        toast({ title: "Request failed", description: detail, variant: "destructive" });
+      } else {
+        toast({ title: "Something went wrong", description: "Please try again later.", variant: "destructive" });
+      }
     }
   };
 
