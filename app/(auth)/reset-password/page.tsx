@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
@@ -29,7 +29,7 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
   return { score, label: cfg.label, color: cfg.color };
 }
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
@@ -252,5 +252,22 @@ export default function ResetPasswordPage() {
         </Button>
       </form>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="mb-8 h-9 w-16 animate-pulse rounded bg-muted/50" />
+        <div className="mb-4 h-8 w-48 animate-pulse rounded bg-muted/50" />
+        <div className="mb-8 h-4 w-64 animate-pulse rounded bg-muted/50" />
+        <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
+        <div className="h-20 animate-pulse rounded-lg bg-muted/50" />
+        <div className="h-11 animate-pulse rounded-lg bg-muted/50" />
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
