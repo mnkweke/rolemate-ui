@@ -34,10 +34,8 @@ import type { ChatResponse, ApplyResponse, ApplyRequest } from "@/types";
 
 const STEPS = ["Select Jobs", "Review CV", "Confirmation"];
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-
 function cvDownloadUrl(jobId: string, template: string = "classic") {
-  return `${API_BASE}/cv/download/${jobId}?template=${template}`;
+  return `/api/cv/download/${jobId}?template=${template}`;
 }
 
 export default function ApplyPage() {
