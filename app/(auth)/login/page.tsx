@@ -17,6 +17,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, login, logout, isLoading: authLoading } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const {
     register,
@@ -201,7 +202,27 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <GoogleSignInButton />
+      <div className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          id="login-terms"
+          checked={acceptedTerms}
+          onChange={(e) => setAcceptedTerms(e.target.checked)}
+          className="mt-1 h-4 w-4 shrink-0 rounded border-border bg-card text-primary focus:ring-primary"
+        />
+        <Label htmlFor="login-terms" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+          I agree to the{" "}
+          <Link href="/terms" className="font-medium text-primary hover:underline" target="_blank">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="font-medium text-primary hover:underline" target="_blank">
+            Privacy Policy
+          </Link>
+        </Label>
+      </div>
+
+      <GoogleSignInButton termsAccepted={acceptedTerms} />
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}

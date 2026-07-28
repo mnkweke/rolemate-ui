@@ -503,7 +503,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      <GoogleSignInButton />
+      <GoogleSignInButton termsAccepted={watch("acceptedTerms")} />
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Already have an account?{" "}

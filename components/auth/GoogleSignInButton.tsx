@@ -50,7 +50,11 @@ function GoogleIcon({ className }: { className?: string }) {
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
-export default function GoogleSignInButton() {
+interface GoogleSignInButtonProps {
+  termsAccepted?: boolean;
+}
+
+export default function GoogleSignInButton({ termsAccepted = false }: GoogleSignInButtonProps) {
   const router = useRouter();
   const { refresh } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -74,6 +78,7 @@ export default function GoogleSignInButton() {
       try {
         await api.post("/auth/google", {
           id_token: response.credential,
+          terms_accepted: termsAccepted,
         });
         await refresh();
         toast({ title: "Signed in successfully", variant: "success" });
@@ -94,10 +99,19 @@ export default function GoogleSignInButton() {
         setLoading(false);
       }
     },
-    [router, refresh]
+    [router, refresh, termsAccepted]
   );
 
   const handleClick = useCallback(() => {
+    if (!termsAccepted) {
+      toast({
+        title: "Terms not accepted",
+        description: "You must agree to the Terms of Service and Privacy Policy",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!GOOGLE_CLIENT_ID) {
       toast({
         title: "Google sign-in not configured",
@@ -124,7 +138,7 @@ export default function GoogleSignInButton() {
     });
 
     window.google.accounts.id.prompt();
-  }, [handleGoogleResponse]);
+  }, [handleGoogleResponse, termsAccepted]);
 
   return (
     <Button
