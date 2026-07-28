@@ -8,8 +8,10 @@ export interface Job {
   url: string;
   source: string;
   seniority: string;
-  remote: boolean;
-  salary: string | null;
+  is_remote?: boolean;
+  remote?: boolean;
+  salary_range?: string | null;
+  salary?: string | null;
   skills: string[];
   posted_at?: string;
   date_posted?: string;
@@ -17,6 +19,12 @@ export interface Job {
   match_score?: number;
   why_matched?: string;
   skill_gaps?: string[];
+  country?: string | null;
+  state?: string | null;
+  city?: string | null;
+  salary_currency?: string | null;
+  salary_min?: number;
+  salary_max?: number;
 }
 
 export interface RankedJob extends Job {
@@ -56,6 +64,7 @@ export interface UserProfile {
   preferred_locations: string[];
   background: string;
   current_goal: string;
+  preferred_market?: string;
 }
 
 export interface AuthResponse {

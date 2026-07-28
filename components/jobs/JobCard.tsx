@@ -85,10 +85,20 @@ export function JobCard({ job }: JobCardProps) {
                 <MapPin className="h-3.5 w-3.5" />
                 {job.location}
               </span>
-              {(job.remote || /remote/i.test(job.location || "")) && (
+              {(job.is_remote || job.remote || /remote/i.test(job.location || "")) && (
                 <Badge variant="outline" className="text-xs">
                   <Globe className="h-3 w-3 mr-1" />
                   Remote
+                </Badge>
+              )}
+              {job.country && job.country !== "Nigeria" && (
+                <Badge variant="outline" className="text-xs">
+                  {job.country}
+                </Badge>
+              )}
+              {job.country === "Nigeria" && job.state && (
+                <Badge variant="secondary" className="text-xs bg-green-500/10 border-green-500/30">
+                  {job.state}
                 </Badge>
               )}
               <span className="flex items-center gap-1">
