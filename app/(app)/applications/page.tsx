@@ -136,7 +136,7 @@ export default function ApplicationsPage() {
           <h2 className="text-2xl font-bold tracking-tight">Applications</h2>
           <p className="text-muted-foreground">Track your job applications</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i}>
               <CardContent className="py-6">
@@ -188,7 +188,7 @@ export default function ApplicationsPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -233,9 +233,9 @@ export default function ApplicationsPage() {
         ) : (
           filteredApps.map((app) => (
             <Card key={app.id}>
-              <CardContent className="flex items-center justify-between py-4">
+              <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between py-4 gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
                     <span className="font-medium truncate">{app.job_title}</span>
                     <span className="text-sm text-muted-foreground shrink-0">
                       at {app.company}
@@ -268,7 +268,7 @@ export default function ApplicationsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 ml-4">
+                <div className="flex items-center gap-2 shrink-0 flex-wrap">
                   <Button
                     variant="outline"
                     size="sm"

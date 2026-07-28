@@ -449,7 +449,7 @@ export default function ApplyPage() {
       {step === 0 && (
         <>
           {/* Quick select buttons */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <span className="text-sm text-muted-foreground mr-2">Quick select:</span>
             <Button
               variant="outline"
@@ -472,8 +472,7 @@ export default function ApplyPage() {
             >
               Select 80%+
             </Button>
-            <div className="flex-1" />
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground ml-auto">
               {selectedIds.length} selected
             </span>
           </div>
@@ -634,7 +633,7 @@ export default function ApplyPage() {
                 </div>
 
                 {/* Side by side CV comparison */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">

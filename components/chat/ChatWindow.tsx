@@ -35,7 +35,7 @@ export function ChatWindow() {
     lastMessage?.role === "assistant" ? lastMessage.jobs ?? [] : [];
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-6">
+    <div className="flex h-[calc(100vh-8rem)] gap-4 lg:gap-6">
       <div className="flex flex-1 flex-col rounded-lg border bg-card">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && (

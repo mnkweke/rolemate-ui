@@ -2,15 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  MessageSquare,
-  Briefcase,
-  User,
-  Bot,
-  Send,
-  ClipboardList,
-} from "lucide-react";
+import { X, LayoutDashboard, MessageSquare, Briefcase, User, Bot, Send, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { AccountPanel } from "@/components/layout/AccountPanel";
@@ -24,14 +16,28 @@ const navItems = [
   { href: "/profile", label: "Profile", icon: User },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r bg-card">
-      <div className="flex items-center gap-2 px-6 py-5">
-        <Bot className="h-6 w-6 text-primary" />
-        <span className="text-xl font-bold">Rolemate</span>
+  const sidebarContent = (
+    <>
+      <div className="flex items-center justify-between gap-2 px-6 py-5">
+        <div className="flex items-center gap-2">
+          <Bot className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold">Rolemate</span>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="lg:hidden rounded-md p-1 text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
       <Separator />
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -42,6 +48,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
@@ -59,6 +66,33 @@ export function Sidebar() {
       <div className="p-3">
         <AccountPanel />
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r bg-card lg:flex">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-card transition-transform duration-300 lg:hidden",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

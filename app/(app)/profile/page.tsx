@@ -331,7 +331,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <input
                 type={showApiKey ? "text" : "password"}
@@ -356,6 +356,7 @@ export default function ProfilePage() {
             <Button
               onClick={handleSaveApiKey}
               disabled={!apiKey.trim() || savingKey}
+              className="w-full sm:w-auto"
             >
               {savingKey && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {apiKeyStatus?.has_api_key ? "Update Key" : "Save Key"}

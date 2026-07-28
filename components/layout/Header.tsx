@@ -11,9 +11,14 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
       {onMenuClick && (
-        <Button variant="ghost" size="icon" onClick={onMenuClick}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onMenuClick}
+          className="lg:hidden"
+        >
           <Menu className="h-5 w-5" />
         </Button>
       )}

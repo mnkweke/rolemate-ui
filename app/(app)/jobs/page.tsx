@@ -137,7 +137,7 @@ export default function JobsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[200px]">
+            <div className="w-full sm:flex-1 sm:min-w-[200px]">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
                 <Search className="h-3 w-3 inline mr-1" />
                 Search
@@ -148,7 +148,7 @@ export default function JobsPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="w-[160px]">
+            <div className="flex-1 sm:flex-none sm:w-[160px] min-w-[140px]">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
                 <MapPin className="h-3 w-3 inline mr-1" />
                 Location
@@ -159,7 +159,7 @@ export default function JobsPage() {
                 onChange={(e) => setLocation(e.target.value)}
               />
             </div>
-            <div className="w-[140px]">
+            <div className="flex-1 sm:flex-none sm:w-[140px] min-w-[120px]">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
                 <Briefcase className="h-3 w-3 inline mr-1" />
                 Seniority
@@ -176,7 +176,7 @@ export default function JobsPage() {
                 ))}
               </select>
             </div>
-            <div className="w-[130px]">
+            <div className="flex-1 sm:flex-none sm:w-[130px] min-w-[100px]">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
                 Source
               </label>

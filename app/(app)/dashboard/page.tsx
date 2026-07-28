@@ -93,9 +93,9 @@ export default function DashboardPage() {
       </div>
 
       {hasApiKey === false && (
-        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-400 shrink-0" />
+        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-yellow-300 font-medium text-sm">AI features disabled</p>
               <p className="text-yellow-500 text-xs mt-0.5">
@@ -103,15 +103,15 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <Link href="/profile">
-            <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white shrink-0">
+          <Link href="/profile" className="w-full sm:w-auto">
+            <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white w-full sm:w-auto">
               Add API Key
             </Button>
           </Link>
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
@@ -252,14 +252,14 @@ export default function DashboardPage() {
           <CardTitle className="text-lg">Quick Chat</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleQuickChat} className="flex gap-2">
+          <form onSubmit={handleQuickChat} className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="Describe your ideal job..."
               value={quickQuery}
               onChange={(e) => setQuickQuery(e.target.value)}
-              className="flex-1"
+              className="w-full sm:flex-1"
             />
-            <Button type="submit" disabled={!quickQuery.trim()}>
+            <Button type="submit" disabled={!quickQuery.trim()} className="w-full sm:w-auto">
               <Send className="h-4 w-4 mr-1" />
               Search
             </Button>
