@@ -136,6 +136,9 @@ export default function ApplyPage() {
   const handleReviewCV = async () => {
     setStep(1);
     setOptimizing(true);
+    setPdfBlobUrls({});
+    setPdfError({});
+    setApplyError(null);
     const previews: Record<string, string> = {};
     for (const job of selectedJobs) {
       try {
@@ -150,7 +153,7 @@ export default function ApplyPage() {
         if (result?.status === "applied" || result?.cv_optimized) {
           previews[job.id] = `Optimized CV for ${job.title} at ${job.company}`;
           fetchBlobPdf(job.id, template);
-        } else if (result?.status === "failed") {
+        } else if (result?.status === "failed" && !result?.cv_optimized) {
           previews[job.id] = `Failed to optimize CV for ${job.title}.`;
         } else {
           previews[job.id] = `Optimized CV for ${job.title} at ${job.company}`;

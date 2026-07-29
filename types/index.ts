@@ -187,3 +187,38 @@ export interface StatusUpdatePayload {
   status: string;
   feedback: string;
 }
+
+export interface NigerianJob {
+  id: number;
+  title: string;
+  company: string;
+  location: string;
+  work_mode: string;
+  salary_min: number | null;
+  salary_max: number | null;
+  salary_currency: string | null;
+  experience_level: string | null;
+  employment_type: string | null;
+  description: string;
+  requirements: string | null;
+  skills: string[];
+  category: string | null;
+  source: string;
+  application_url: string;
+  date_posted: string | null;
+  closing_date: string | null;
+  is_active: boolean;
+  scraped_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminJobStats {
+  total_jobs: number;
+  active_jobs: number;
+  jobs_by_source: Record<string, number>;
+  jobs_by_category: Record<string, number>;
+  jobs_added_today: number;
+  last_sync_time: string | null;
+  failed_imports: number;
+}

@@ -17,6 +17,10 @@ interface User {
   email: string;
   has_api_key: boolean;
   auth_provider: string;
+  is_admin: boolean;
+  role: string;
+  is_active: boolean;
+  permissions: string[];
 }
 
 interface AuthContextValue {

@@ -35,7 +35,7 @@ export default function TermsPage() {
           <h2 className="mb-2 text-base font-semibold text-foreground">2. Description of Service</h2>
           <p>
             RoleMate is an AI-powered job search assistant that helps users discover job listings,
-            optimize resumes, and manage applications. The service is provided "as is" without
+            optimize resumes, and manage applications. The service is provided &ldquo;as is&rdquo; without
             guarantee of job placement or application success.
           </p>
         </section>

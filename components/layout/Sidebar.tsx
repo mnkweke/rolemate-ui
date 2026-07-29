@@ -2,19 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LayoutDashboard, MessageSquare, Briefcase, User, Bot, Send, ClipboardList } from "lucide-react";
+import { X, LayoutDashboard, MessageSquare, Briefcase, User, Bot, Send, ClipboardList, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { AccountPanel } from "@/components/layout/AccountPanel";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/apply", label: "Apply", icon: Send },
-  { href: "/applications", label: "Applications", icon: ClipboardList },
-  { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/profile", label: "Profile", icon: User },
-];
+import { useAuth } from "@/components/auth/AuthContext";
 
 interface SidebarProps {
   open: boolean;
@@ -23,6 +15,19 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+
+  const navItems = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/chat", label: "Chat", icon: MessageSquare },
+    { href: "/apply", label: "Apply", icon: Send },
+    { href: "/applications", label: "Applications", icon: ClipboardList },
+    { href: "/jobs", label: "Jobs", icon: Briefcase },
+    { href: "/profile", label: "Profile", icon: User },
+    ...(isAdmin ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
+  ];
 
   const sidebarContent = (
     <>
