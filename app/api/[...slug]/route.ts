@@ -2,6 +2,10 @@ import { NextRequest } from "next/server";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000/api/v1";
 const BFF_TIMEOUT_MS = 60_000;
+const LONG_BFF_TIMEOUT_MS = 180_000;
+const LONG_TIMEOUT_PREFIXES = ["apply", "cv"];
+
+export const maxDuration = 180;
 
 function buildTargetUrl(slug: string[], request: NextRequest): string {
   const path = slug.join("/");
@@ -71,8 +75,11 @@ async function proxy(request: NextRequest, slug: string[]): Promise<Response> {
     fetchOptions.body = await request.arrayBuffer();
   }
 
+  const longTimeout = slug.length > 0 && LONG_TIMEOUT_PREFIXES.includes(slug[0]);
+  const timeoutMs = longTimeout ? LONG_BFF_TIMEOUT_MS : BFF_TIMEOUT_MS;
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), BFF_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   fetchOptions.signal = controller.signal;
 
   try {
