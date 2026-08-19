@@ -78,7 +78,7 @@ const benefits = [
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -115,9 +115,7 @@ export default function LandingPage() {
               )
             )}
             <div className="flex items-center gap-3">
-              {isLoading ? (
-                <div className="h-9 w-24 animate-pulse rounded-md bg-muted/50" />
-              ) : isAuthenticated ? (
+              {isAuthenticated ? (
                 <Link href="/dashboard">
                   <Button size="sm">
                     <LayoutDashboard className="mr-1.5 h-4 w-4" />
@@ -140,9 +138,7 @@ export default function LandingPage() {
           </nav>
 
           <div className="md:hidden">
-            {isLoading ? (
-              <div className="h-9 w-9 animate-pulse rounded-md bg-muted/50" />
-            ) : isAuthenticated ? (
+            {isAuthenticated ? (
               <Link href="/dashboard">
                 <Button size="sm">
                   <LayoutDashboard className="mr-1.5 h-4 w-4" />
@@ -233,9 +229,7 @@ export default function LandingPage() {
               </p>
 
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                {isLoading ? (
-                  <div className="h-11 w-52 animate-pulse rounded-md bg-muted/50" />
-                ) : isAuthenticated ? (
+                {isAuthenticated ? (
                   <Link href="/dashboard">
                     <Button
                       size="lg"
